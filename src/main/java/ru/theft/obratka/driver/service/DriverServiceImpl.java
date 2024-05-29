@@ -39,8 +39,8 @@ public class DriverServiceImpl implements DriverService {
     }
 
     @Override
-    public Driver getById(long id) {
-        return driverRepository.findById(id)
+    public Driver getById(String id) {
+        return driverRepository.findById(Long.valueOf(id))
                 .orElseThrow(() -> new NotFoundException("Такого водителя не существует!"));
     }
 }

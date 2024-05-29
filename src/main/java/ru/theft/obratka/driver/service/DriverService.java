@@ -11,5 +11,5 @@ public interface DriverService {
 
     Driver getByTgId(String tg);
 
-    Driver getById(long id);
+    Driver getById(String id);
 }
