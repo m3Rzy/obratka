@@ -34,7 +34,7 @@ public class TelegramBotCore extends TelegramLongPollingBot {
     private String botToken;
 
     private boolean isRegisterState = false;
-    private List<String> telegramIds = new ArrayList<>();
+    private final List<String> telegramIds = new ArrayList<>();
     private final DriverService driverService;
 
     @Override
@@ -43,8 +43,7 @@ public class TelegramBotCore extends TelegramLongPollingBot {
             log.info("{} [{}]: {}", update.getMessage().getFrom().getUserName(),
                     update.getMessage().getFrom().getId(),
                     update.getMessage().getText());
-
-            if (isNewDriver(update.getMessage().getFrom().getId())) {
+            if (isNewUser(update.getMessage().getFrom().getId().toString())) {
                 try {
                     showMenu(update.getMessage().getChatId(), update.getMessage().getFrom().getFirstName());
                 } catch (TelegramApiException e) {
@@ -59,12 +58,9 @@ public class TelegramBotCore extends TelegramLongPollingBot {
                                 driver = createDriverFromString(update.getMessage().getText(),
                                         update.getMessage().getFrom().getId(), update.getMessage().getChatId());
                                 if (areAllFieldsFilled(driver)) {
-//                                    IndividualServiceIo.startService(company, individual,
-//                                            update.getMessage().getChatId(), this, titleOfCompany);
-//                                    isStateIndividual = false;
                                     isRegisterState = false;
-                                    log.info("65 строка");
                                     driverService.add(driver);
+                                    setAnswer(update.getMessage().getChatId(), driver.getFio() + ", вы были успешно зарегестрированы!");
                                 }
                             } catch (ArrayIndexOutOfBoundsException e) {
                                 setAnswer(update.getMessage().getChatId(), "Не все поля заполнены!");
@@ -72,6 +68,21 @@ public class TelegramBotCore extends TelegramLongPollingBot {
                         } else {
                             setAnswer(update.getMessage().getChatId(), "Неизвестная команда!");
                         }
+                    }
+                    case "/start" -> {
+                        if (!isAuthenticated(update.getMessage().getFrom().getId().toString())) {
+                            isRegisterState = false;
+                            try {
+                                showMenu(update.getMessage().getChatId(), update.getMessage().getFrom().getFirstName());
+                            } catch (TelegramApiException e) {
+                                throw new RuntimeException(e);
+                            }
+                        } else {
+                            setAnswer(update.getMessage().getChatId(),
+                                    update.getMessage().getFrom().getFirstName() + ", " +
+                                    "вы ведь уже прошли регистрацию! Необходимо поменять данные? Обращайтесь к @hoiboui");
+                        }
+
                     }
                 }
             }
@@ -100,7 +111,6 @@ public class TelegramBotCore extends TelegramLongPollingBot {
         switch (callData) {
             case "reg":
                 log.info("{} clicked button *reg*.", update.getCallbackQuery().getFrom().getUserName());
-                // добавить окно регестрации
                 isRegisterState = true;
                 setAnswer(chatId, ConstantMessage.REGISTER_DRIVER);
                 break;
@@ -144,23 +154,23 @@ public class TelegramBotCore extends TelegramLongPollingBot {
         execute(message);
     }
 
-    private boolean isNewDriver(Long tg) {
-//        Driver driver = driverService.getAll().stream().filter(f -> f.getTgId().equals(tg)).findFirst().orElse(null);
-//        if (driver != null) {
-//            log.info("The driver already exists.");
-//            return false;
-//        } else {
-//            log.info("New driver.");
-//            return true;
-//        }
-        // todo: засунуть в nosql базу
+    private boolean isAuthenticated(String tg) {
+        if (driverService.getByTgId(tg) != null) {
+            log.info("User already authenticated.");
+            return true;
+        } else {
+            log.info("User not authenticated.");
+            return false;
+        }
+    }
 
-        if (telegramIds.contains(tg.toString())) {
-            log.info("The driver already exists.");
+    private boolean isNewUser(String tg) {
+        if (telegramIds.contains(tg)) {
+            log.info("Old user.");
             return false;
         } else {
-            log.info("New driver.");
             telegramIds.add(String.valueOf(tg));
+            log.info("New user!");
             return true;
         }
     }

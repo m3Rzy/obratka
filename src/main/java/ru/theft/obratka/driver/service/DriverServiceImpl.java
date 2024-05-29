@@ -27,4 +27,13 @@ public class DriverServiceImpl implements DriverService {
         log.info("The driver has been successfully added to the database!");
         return driverRepository.save(driver);
     }
+
+    @Override
+    public Driver getByTgId(String tg) {
+        return driverRepository.findAll()
+                .stream()
+                .filter(f -> f.getTgId().equals(tg))
+                .findFirst()
+                .orElseThrow();
+    }
 }

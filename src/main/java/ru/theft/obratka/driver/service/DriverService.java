@@ -8,4 +8,6 @@ public interface DriverService {
     List<Driver> getAll();
 
     Driver add(Driver driver);
+
+    Driver getByTgId(String tg);
 }
