@@ -10,4 +10,6 @@ public interface DriverService {
     Driver add(Driver driver);
 
     Driver getByTgId(String tg);
+
+    Driver getById(long id);
 }

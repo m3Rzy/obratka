@@ -1,5 +1,6 @@
 package ru.theft.obratka.driver.service;
 
+import jakarta.ws.rs.NotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -35,5 +36,11 @@ public class DriverServiceImpl implements DriverService {
                 .filter(f -> f.getTgId().equals(tg))
                 .findFirst()
                 .orElseThrow();
+    }
+
+    @Override
+    public Driver getById(long id) {
+        return driverRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Такого водителя не существует!"));
     }
 }
