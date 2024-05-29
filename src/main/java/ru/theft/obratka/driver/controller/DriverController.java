@@ -1,10 +1,7 @@
 package ru.theft.obratka.driver.controller;
 
 import lombok.AllArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import ru.theft.obratka.driver.model.Driver;
 import ru.theft.obratka.driver.service.DriverService;
 
@@ -21,8 +18,8 @@ public class DriverController {
         return driverService.getAll();
     }
 
-    @GetMapping("/{id}")
-    public Driver getDriverById(@PathVariable String id) {
+    @GetMapping("/own")
+    public Driver getDriverById(@RequestParam String id) {
         return driverService.getById(id);
     }
 }
