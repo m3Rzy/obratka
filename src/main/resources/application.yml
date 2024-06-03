@@ -7,19 +7,15 @@ spring:
     password: 123321
     driver-class-name: org.postgresql.Driver
   jpa:
-    database: postgresql
-    hibernate:
-      ddl-auto: create-drop
-    properties:
+      database: postgresql
       hibernate:
-        format_sql: true
+        ddl-auto: update
+      properties:
+        hibernate:
+          format_sql: true
   sql:
-    init:
-      mode: always
-
+      init:
+        mode: always
 bot:
   token: 6490264832:AAGIlybsx7n41U6jlZvZhMwrQMRg942rzSM
   name: GfObratkaBot
-
-google-table:
-  spreadsheet_id: 1-L8z3d6_CDwP1OfsxClc_WA620SNyFjDmfn1LGKDs4s

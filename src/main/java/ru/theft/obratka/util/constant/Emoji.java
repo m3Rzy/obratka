@@ -9,4 +9,8 @@ public class Emoji {
     public static final String BUSTS_IN_SILHOUETTE_EMOJI = ":busts_in_silhouette:";
     public static final String BRIEFCASE_EMOJI = ":briefcase:";
     public static final String EXCLAMATION_EMOJI = ":exclamation:";
+    public static final String GRIMACING_EMOJI = ":grimacing:";
+    public static final String STOP_SIGN_EMOJI = ":stop_sign:";
+    public static final String WHITE_CHECK_MARK_EMOJI = ":white_check_mark:";
+
 }

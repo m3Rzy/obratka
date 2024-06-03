@@ -35,7 +35,7 @@ public class DriverServiceImpl implements DriverService {
                 .stream()
                 .filter(f -> f.getTgId().equals(tg))
                 .findFirst()
-                .orElseThrow();
+                .get();
     }
 
     @Override

@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>ru.theft</groupId>
 	<artifactId>obratka</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.1</version>
 	<name>obratka</name>
 	<description>Telegram bot ObratkaBot for Gruzovichkof</description>
 	<properties>

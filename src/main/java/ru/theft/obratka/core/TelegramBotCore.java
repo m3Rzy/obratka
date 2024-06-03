@@ -11,7 +11,10 @@ import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.theft.obratka.driver.model.Driver;
 import ru.theft.obratka.driver.model.TypeCarBody;
@@ -21,6 +24,7 @@ import ru.theft.obratka.util.constant.ConstantMessage;
 import java.util.ArrayList;
 import java.util.List;
 
+import static ru.theft.obratka.util.constant.ConstantMessage.*;
 import static ru.theft.obratka.util.constant.Emoji.*;
 
 @Component
@@ -34,6 +38,7 @@ public class TelegramBotCore extends TelegramLongPollingBot {
     private String botToken;
 
     private boolean isRegisterState = false;
+    private boolean isAuthState = false;
     private final List<String> telegramIds = new ArrayList<>();
     private final DriverService driverService;
 
@@ -52,6 +57,21 @@ public class TelegramBotCore extends TelegramLongPollingBot {
             } else {
                 switch (update.getMessage().getText()) {
                     default -> {
+                        if (isAuthState) {
+                            try {
+                                showAuthMenu(update.getMessage().getFrom().getId());
+                                switch (update.getMessage().getText()) {
+                                    case "< Мой профиль >" -> {
+                                        setAnswer(update.getMessage().getFrom().getId(), "выбрал мой профиль");
+                                    }
+                                    default -> {
+                                        setAnswer(update.getMessage().getFrom().getId(), "ничего не выбрал, пишет херню");
+                                    }
+                                }
+                            } catch (TelegramApiException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
                         if (isRegisterState) {
                             try {
                                 Driver driver;
@@ -59,38 +79,33 @@ public class TelegramBotCore extends TelegramLongPollingBot {
                                         update.getMessage().getFrom().getId(), update.getMessage().getChatId());
                                 if (areAllFieldsFilled(driver)) {
                                     isRegisterState = false;
+                                    isAuthState = true;
                                     driverService.add(driver);
-                                    setAnswer(update.getMessage().getChatId(), driver.getFio() + ", вы были успешно зарегестрированы!");
+                                    setAnswer(update.getMessage().getChatId(),
+                                            EmojiParser.parseToUnicode(WHITE_CHECK_MARK_EMOJI) + " " +
+                                                    driver.getFio() + SUCCESSFUL_REGISTER);
                                 }
                             } catch (ArrayIndexOutOfBoundsException e) {
-                                setAnswer(update.getMessage().getChatId(), "Не все поля заполнены!");
+                                setAnswer(update.getMessage().getChatId(), FIELDS_IS_EMPTY);
                             }
-                        } else {
-                            setAnswer(update.getMessage().getChatId(), "Неизвестная команда!");
                         }
                     }
                     case "/start" -> {
-                        if (!isAuthenticated(update.getMessage().getFrom().getId().toString())) {
-                            isRegisterState = false;
-                            try {
-                                showMenu(update.getMessage().getChatId(), update.getMessage().getFrom().getFirstName());
-                            } catch (TelegramApiException e) {
-                                throw new RuntimeException(e);
-                            }
-                        } else {
-                            setAnswer(update.getMessage().getChatId(),
-                                    update.getMessage().getFrom().getFirstName() + ", " +
-                                    "вы ведь уже прошли регистрацию! Необходимо поменять данные? Обращайтесь к @hoiboui");
+                        isRegisterState = false;
+                        try {
+                            showMenu(update.getMessage().getChatId(), update.getMessage().getFrom().getFirstName());
+                        } catch (TelegramApiException e) {
+                            throw new RuntimeException(e);
                         }
-
                     }
                 }
             }
         } else if (update.hasCallbackQuery()) {
             String call_data = update.getCallbackQuery().getData();
+            long tgId = update.getCallbackQuery().getFrom().getId();
             long chatId = update.getCallbackQuery().getMessage().getChatId();
             try {
-                handleCallbackQuery(call_data, chatId, update);
+                handleCallbackQuery(call_data, chatId, tgId);
             } catch (TelegramApiException e) {
                 throw new RuntimeException(e);
             }
@@ -107,15 +122,21 @@ public class TelegramBotCore extends TelegramLongPollingBot {
         return botToken;
     }
 
-    private void handleCallbackQuery(String callData, long chatId, Update update) throws TelegramApiException {
+    private void handleCallbackQuery(String callData, long chatId, long tgId) throws TelegramApiException {
         switch (callData) {
             case "reg":
-                log.info("{} clicked button *reg*.", update.getCallbackQuery().getFrom().getUserName());
-                isRegisterState = true;
-                setAnswer(chatId, ConstantMessage.REGISTER_DRIVER);
+                if (driverService.getAll()
+                        .stream()
+                        .anyMatch(i -> i.getTgId().equals(String.valueOf(tgId)))) {
+                    setAnswer(chatId, IS_REGISTERED);
+                    isAuthState = true;
+                } else {
+                    isAuthState = false;
+                    isRegisterState = true;
+                    setAnswer(chatId, ConstantMessage.REGISTER_DRIVER);
+                }
                 break;
             default:
-                log.info("{} randomly clicked.", update.getCallbackQuery().getFrom().getUserName());
                 break;
         }
     }
@@ -125,6 +146,43 @@ public class TelegramBotCore extends TelegramLongPollingBot {
                 .text(text)
                 .callbackData(callbackData)
                 .build();
+    }
+
+    private void showAuthMenu(Long chatId) throws TelegramApiException {
+        ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
+
+        SendMessage message = new SendMessage();
+
+        message.setReplyMarkup(replyKeyboardMarkup);
+        replyKeyboardMarkup.setSelective(false);
+        replyKeyboardMarkup.setResizeKeyboard(true);
+        replyKeyboardMarkup.setOneTimeKeyboard(false);
+
+        // Создаем список строк клавиатуры
+        List<KeyboardRow> keyboard = new ArrayList<>();
+
+        // Первая строчка клавиатуры
+        KeyboardRow keyboardFirstRow = new KeyboardRow();
+        // Добавляем кнопки в первую строчку клавиатуры
+        keyboardFirstRow.add(new KeyboardButton("< Мой профиль >"));
+
+        // Вторая строчка клавиатуры
+        KeyboardRow keyboardSecondRow = new KeyboardRow();
+        // Добавляем кнопки во вторую строчку клавиатуры
+        keyboardSecondRow.add(new KeyboardButton("< Изменить данные >"));
+
+        // Добавляем все строчки клавиатуры в список
+        keyboard.add(keyboardFirstRow);
+        keyboard.add(keyboardSecondRow);
+        // и устанваливаем этот список нашей клавиатуре
+        replyKeyboardMarkup.setKeyboard(keyboard);
+
+        message.setChatId(chatId);
+        message.setText("Выберете нужную кнопку ниже...");
+        message.enableHtml(true);
+        message.enableMarkdownV2(true);
+        message.enableMarkdown(true);
+        execute(message);
     }
 
     private void showMenu(Long chatId, String firstName) throws TelegramApiException {
@@ -154,23 +212,11 @@ public class TelegramBotCore extends TelegramLongPollingBot {
         execute(message);
     }
 
-    private boolean isAuthenticated(String tg) {
-        if (driverService.getByTgId(tg) != null) {
-            log.info("User already authenticated.");
-            return true;
-        } else {
-            log.info("User not authenticated.");
-            return false;
-        }
-    }
-
     private boolean isNewUser(String tg) {
         if (telegramIds.contains(tg)) {
-            log.info("Old user.");
             return false;
         } else {
             telegramIds.add(String.valueOf(tg));
-            log.info("New user!");
             return true;
         }
     }
