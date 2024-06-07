@@ -60,14 +60,6 @@ public class TelegramBotCore extends TelegramLongPollingBot {
                         if (isAuthState) {
                             try {
                                 showAuthMenu(update.getMessage().getFrom().getId());
-                                switch (update.getMessage().getText()) {
-                                    case "< Мой профиль >" -> {
-                                        setAnswer(update.getMessage().getFrom().getId(), "выбрал мой профиль");
-                                    }
-                                    default -> {
-                                        setAnswer(update.getMessage().getFrom().getId(), "ничего не выбрал, пишет херню");
-                                    }
-                                }
                             } catch (TelegramApiException e) {
                                 throw new RuntimeException(e);
                             }
@@ -97,6 +89,17 @@ public class TelegramBotCore extends TelegramLongPollingBot {
                         } catch (TelegramApiException e) {
                             throw new RuntimeException(e);
                         }
+                    }
+
+                    case "\uD83D\uDC64 Мой профиль" -> {
+                        log.info(update.getMessage().getFrom().getUserName() + " clicked own profile.");
+                        Driver driver = driverService.getByTgId(update.getMessage().getFrom().getId().toString());
+                        setAnswer(update.getMessage().getChatId(), driver.toString());
+                    }
+
+                    case "\uD83D\uDE9A Поделиться маршрутом" -> {
+                        log.info(update.getMessage().getFrom().getUserName() + " clicked share path.");
+                        setAnswer(update.getMessage().getChatId(), "Делаем метод < Поделиться маршрутом >...");
                     }
                 }
             }
@@ -164,12 +167,12 @@ public class TelegramBotCore extends TelegramLongPollingBot {
         // Первая строчка клавиатуры
         KeyboardRow keyboardFirstRow = new KeyboardRow();
         // Добавляем кнопки в первую строчку клавиатуры
-        keyboardFirstRow.add(new KeyboardButton("< Мой профиль >"));
+        keyboardFirstRow.add(new KeyboardButton(EmojiParser.parseToUnicode(BUST_IN_SILHOUETTE_EMOJI) + " Мой профиль"));
 
         // Вторая строчка клавиатуры
         KeyboardRow keyboardSecondRow = new KeyboardRow();
         // Добавляем кнопки во вторую строчку клавиатуры
-        keyboardSecondRow.add(new KeyboardButton("< Изменить данные >"));
+        keyboardSecondRow.add(new KeyboardButton( EmojiParser.parseToUnicode(TRUCK_EMOJI) + " Поделиться маршрутом"));
 
         // Добавляем все строчки клавиатуры в список
         keyboard.add(keyboardFirstRow);

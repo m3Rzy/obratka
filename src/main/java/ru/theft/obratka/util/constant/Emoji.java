@@ -12,5 +12,7 @@ public class Emoji {
     public static final String GRIMACING_EMOJI = ":grimacing:";
     public static final String STOP_SIGN_EMOJI = ":stop_sign:";
     public static final String WHITE_CHECK_MARK_EMOJI = ":white_check_mark:";
+    public static final String TRUCK_EMOJI = ":truck:";
+    public static final String WRITING_HAND_EMOJI = ":writing_hand:";
 
 }

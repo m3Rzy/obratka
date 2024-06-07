@@ -1,10 +1,7 @@
 package ru.theft.obratka.driver.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Data
 @Entity
@@ -35,4 +32,23 @@ public class Driver {
 
     @Column(name = "driver_load_opacity", nullable = false)
     private int loadOpacity;
+
+    @Override
+    public String toString() {
+        String s_fio = "ФИО:";
+        String s_telephone = "Номер телефона для связи:";
+        String s_typeCarBody = "Тип авто:";
+        String s_dimensions = "Габариты:";
+        String s_loadOpacity = "Грузоподъёмность (кг):";
+        int totalWidth = 50;
+        return String.format("```\n" +
+                        "%s%" + (totalWidth - s_fio.length()) + "s\n" +
+                        "%s%" + (totalWidth - s_telephone.length()) + "s\n" +
+                        "%s%" + (totalWidth - s_typeCarBody.length()) + "s\n" +
+                        "%s%" + (totalWidth - s_dimensions.length()) + "s\n" +
+                        "%s%" + (totalWidth - s_loadOpacity.length()) + "s\n" +
+                        "```",
+                s_fio, fio, s_telephone, "+" + telephone, s_typeCarBody, typeCarBody.getTitle(), s_dimensions, dimensions,
+                s_loadOpacity, loadOpacity);
+    }
 }
