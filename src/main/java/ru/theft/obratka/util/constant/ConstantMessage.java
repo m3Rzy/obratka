@@ -19,4 +19,5 @@ public class ConstantMessage {
     public static final String IS_REGISTERED = EmojiParser.parseToUnicode(WHITE_CHECK_MARK_EMOJI) + " Вы уже зарегистрированы. " +
             "Если планируете сменить профиль, обращайтесь к @hoiboui.";
     public static final String SUCCESSFUL_REGISTER = ", вы были успешно добавлены в базу.";
+    public static final String SUCCESSFUL_PATCH = ", Ваш профиль был успешно изменён.";
 }

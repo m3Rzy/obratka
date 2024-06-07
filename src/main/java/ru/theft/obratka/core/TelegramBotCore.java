@@ -39,6 +39,8 @@ public class TelegramBotCore extends TelegramLongPollingBot {
 
     private boolean isRegisterState = false;
     private boolean isAuthState = false;
+    private boolean isPatchState = false;
+    private boolean isSuccessState = false;
     private final List<String> telegramIds = new ArrayList<>();
     private final DriverService driverService;
 
@@ -59,7 +61,8 @@ public class TelegramBotCore extends TelegramLongPollingBot {
                     default -> {
                         if (isAuthState) {
                             try {
-                                showAuthMenu(update.getMessage().getFrom().getId());
+                                showAuthMenu(update.getMessage().getFrom().getId(),
+                                        update.getMessage().getFrom().getUserName());
                             } catch (TelegramApiException e) {
                                 throw new RuntimeException(e);
                             }
@@ -81,6 +84,23 @@ public class TelegramBotCore extends TelegramLongPollingBot {
                                 setAnswer(update.getMessage().getChatId(), FIELDS_IS_EMPTY);
                             }
                         }
+
+                        if (isPatchState) {
+                            try {
+                                Driver driver;
+                                driver = createDriverFromString(update.getMessage().getText(),
+                                        update.getMessage().getFrom().getId(), update.getMessage().getChatId());
+                                if (areAllFieldsFilled(driver)) {
+                                    driverService.patch(driver, update.getMessage().getFrom().getId().toString());
+//                                    setAnswer(update.getMessage().getChatId(),
+//                                            EmojiParser.parseToUnicode(WHITE_CHECK_MARK_EMOJI) + " " +
+//                                                    driver.getFio() + SUCCESSFUL_PATCH);
+                                    isSuccessState = true;
+                                }
+                            } catch (ArrayIndexOutOfBoundsException e) {
+                                setAnswer(update.getMessage().getChatId(), FIELDS_IS_EMPTY);
+                            }
+                        }
                     }
                     case "/start" -> {
                         isRegisterState = false;
@@ -93,8 +113,11 @@ public class TelegramBotCore extends TelegramLongPollingBot {
 
                     case "\uD83D\uDC64 Мой профиль" -> {
                         log.info(update.getMessage().getFrom().getUserName() + " clicked own profile.");
-                        Driver driver = driverService.getByTgId(update.getMessage().getFrom().getId().toString());
-                        setAnswer(update.getMessage().getChatId(), driver.toString());
+                        try {
+                            showProfile(update.getMessage().getFrom().getId());
+                        } catch (TelegramApiException e) {
+                            throw new RuntimeException(e);
+                        }
                     }
 
                     case "\uD83D\uDE9A Поделиться маршрутом" -> {
@@ -108,7 +131,7 @@ public class TelegramBotCore extends TelegramLongPollingBot {
             long tgId = update.getCallbackQuery().getFrom().getId();
             long chatId = update.getCallbackQuery().getMessage().getChatId();
             try {
-                handleCallbackQuery(call_data, chatId, tgId);
+                handleCallbackQuery(call_data, chatId, tgId, update);
             } catch (TelegramApiException e) {
                 throw new RuntimeException(e);
             }
@@ -125,7 +148,7 @@ public class TelegramBotCore extends TelegramLongPollingBot {
         return botToken;
     }
 
-    private void handleCallbackQuery(String callData, long chatId, long tgId) throws TelegramApiException {
+    private void handleCallbackQuery(String callData, long chatId, long tgId, Update update) throws TelegramApiException {
         switch (callData) {
             case "reg":
                 if (driverService.getAll()
@@ -139,6 +162,10 @@ public class TelegramBotCore extends TelegramLongPollingBot {
                     setAnswer(chatId, ConstantMessage.REGISTER_DRIVER);
                 }
                 break;
+
+            case "edit":
+                setAnswer(chatId, REGISTER_DRIVER);
+                isPatchState = true;
             default:
                 break;
         }
@@ -151,7 +178,7 @@ public class TelegramBotCore extends TelegramLongPollingBot {
                 .build();
     }
 
-    private void showAuthMenu(Long chatId) throws TelegramApiException {
+    private void showAuthMenu(Long chatId, String tgUserName) throws TelegramApiException {
         ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
 
         SendMessage message = new SendMessage();
@@ -181,11 +208,38 @@ public class TelegramBotCore extends TelegramLongPollingBot {
         replyKeyboardMarkup.setKeyboard(keyboard);
 
         message.setChatId(chatId);
-        message.setText("Выберете нужную кнопку ниже...");
+        if (!isPatchState && !isSuccessState) {
+            message.setText("Выберете нужную кнопку ниже...");
+        } else if (isPatchState && isSuccessState) {
+            message.setText(EmojiParser.parseToUnicode(WHITE_CHECK_MARK_EMOJI) + " " + tgUserName + SUCCESSFUL_PATCH);
+            isSuccessState = false;
+            isPatchState = false;
+        } else {
+            message.setText("Не все поля заполнены!");
+        }
         message.enableHtml(true);
         message.enableMarkdownV2(true);
         message.enableMarkdown(true);
         execute(message);
+    }
+
+    private void showProfile(Long chatId) throws TelegramApiException {
+        InlineKeyboardMarkup keyboard;
+        var editButton = createInlineKeyboardButton("Изменить данные " + EmojiParser
+                .parseToUnicode(WRITING_HAND_EMOJI), "edit");
+
+        keyboard = InlineKeyboardMarkup.builder()
+                .keyboardRow(List.of(editButton))
+                .build();
+
+        Driver driver = driverService.getByTgId(chatId.toString());
+        SendMessage sendMessage = SendMessage.builder().chatId(chatId).parseMode(ParseMode.HTML)
+                .text(driver.toString())
+                .replyMarkup(keyboard).build();
+        sendMessage.enableHtml(true);
+        sendMessage.enableMarkdownV2(true);
+        sendMessage.enableMarkdown(true);
+        execute(sendMessage);
     }
 
     private void showMenu(Long chatId, String firstName) throws TelegramApiException {

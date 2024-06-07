@@ -26,7 +26,36 @@ public class DriverServiceImpl implements DriverService {
     @Override
     public Driver add(Driver driver) {
         log.info("The driver has been successfully added to the database!");
+//        todo: сделать валидацию данных
         return driverRepository.save(driver);
+    }
+
+    @Override
+    public Driver patch(Driver driver, String tgId) {
+        Driver ownDriver = getByTgId(tgId);
+
+        if (driver.getFio() != null) {
+            ownDriver.setFio(driver.getFio());
+        }
+
+        if (driver.getTelephone() != null) {
+            ownDriver.setTelephone(driver.getTelephone());
+        }
+
+        if (driver.getTypeCarBody() != null) {
+            ownDriver.setTypeCarBody(driver.getTypeCarBody());
+        }
+
+        if (driver.getDimensions() != null) {
+            ownDriver.setDimensions(driver.getDimensions());
+        }
+
+        if (driver.getLoadOpacity() > 0 && driver.getLoadOpacity() < 20000) {
+            ownDriver.setLoadOpacity(driver.getLoadOpacity());
+        }
+//        todo: сделать валидацию данных
+        log.info("The driver has been successfully patched to the database!");
+        return driverRepository.saveAndFlush(ownDriver);
     }
 
     @Override
