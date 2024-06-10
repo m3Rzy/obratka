@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static ru.theft.obratka.util.constant.ConstantMessage.*;
+import static ru.theft.obratka.util.constant.Emoji.WARNING_EMOJI;
 
 @Service
 @Slf4j
@@ -98,7 +99,7 @@ public class DriverServiceHandler {
         } else if (isRegisterProcessState) {
             try {
                 Driver driver = createDriverFromString(update.getMessage().getText(),
-                        update.getMessage().getFrom().getId());
+                        update.getMessage().getFrom().getId(), update.getMessage().getChatId(), bot);
                 if (areAllFieldsFilled(driver)) {
                     driverService.add(driver);
                     bot.execute(menuService.createAuthMenu(update.getMessage().getChatId(),
@@ -110,7 +111,7 @@ public class DriverServiceHandler {
         } else if (isPatchProcessState) {
             try {
                 Driver driver = createDriverFromString(update.getMessage().getText(),
-                        update.getMessage().getFrom().getId());
+                        update.getMessage().getFrom().getId(), update.getMessage().getChatId(), bot);
                 if (areAllFieldsFilled(driver)) {
                     driverService.patch(driver, update.getMessage().getFrom().getId().toString());
                     bot.execute(menuService.createAuthMenu(update.getMessage().getChatId(), driver.getFio(), 3));
@@ -163,7 +164,8 @@ public class DriverServiceHandler {
         bot.execute(message);
     }
 
-    private Driver createDriverFromString(String input, long tgId) {
+    private Driver createDriverFromString(String input, long tgId,
+                                          long chatId, TelegramBotCore bot) throws TelegramApiException {
         String[] lines = input.split("\\n");
         Driver driver = new Driver();
         driver.setTgId(String.valueOf(tgId));
@@ -175,7 +177,11 @@ public class DriverServiceHandler {
             case "тент" -> driver.setTypeCarBody(TypeCarBody.TENT);
             case "изотерма" -> driver.setTypeCarBody(TypeCarBody.ISOTHERMAL);
             case "открытый" -> driver.setTypeCarBody(TypeCarBody.OPEN);
-            default -> throw new IllegalArgumentException("Такого типа кузова не существует!");
+            default -> {
+                bot.execute(createSendMessage(chatId, EmojiParser.parseToUnicode(WARNING_EMOJI)
+                        + " Такого типа кузова не существует!"));
+                throw new IllegalArgumentException("Такого типа кузова не существует!");
+            }
         }
 
         driver.setDimensions(lines[3].trim());

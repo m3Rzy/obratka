@@ -48,7 +48,8 @@ public class Driver {
                         "%s%" + (totalWidth - s_dimensions.length()) + "s\n" +
                         "%s%" + (totalWidth - s_loadOpacity.length()) + "s\n" +
                         "```",
-                s_fio, fio, s_telephone, "+" + telephone, s_typeCarBody, typeCarBody.getTitle(), s_dimensions, dimensions,
+                s_fio, fio, s_telephone, "+" + telephone, s_typeCarBody, typeCarBody.getTitle(),
+                s_dimensions, dimensions,
                 s_loadOpacity, loadOpacity);
     }
 }
