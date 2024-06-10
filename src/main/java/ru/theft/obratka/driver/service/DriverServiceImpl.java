@@ -8,6 +8,7 @@ import ru.theft.obratka.driver.model.Driver;
 import ru.theft.obratka.driver.repository.DriverRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -32,7 +33,8 @@ public class DriverServiceImpl implements DriverService {
 
     @Override
     public Driver patch(Driver driver, String tgId) {
-        Driver ownDriver = getByTgId(tgId);
+        Driver ownDriver = getByTgId(tgId)
+                .orElseThrow(() -> new RuntimeException("Такого водителя не существует!"));
 
         if (driver.getFio() != null) {
             ownDriver.setFio(driver.getFio());
@@ -59,12 +61,11 @@ public class DriverServiceImpl implements DriverService {
     }
 
     @Override
-    public Driver getByTgId(String tg) {
+    public Optional<Driver> getByTgId(String tg) {
         return driverRepository.findAll()
                 .stream()
                 .filter(f -> f.getTgId().equals(tg))
-                .findFirst()
-                .get();
+                .findFirst();
     }
 
     @Override

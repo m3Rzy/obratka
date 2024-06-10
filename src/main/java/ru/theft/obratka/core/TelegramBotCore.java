@@ -108,12 +108,14 @@ public class TelegramBotCore extends TelegramLongPollingBot {
                     case "\uD83D\uDC64 Мой профиль" -> {
                         log.info(update.getMessage().getFrom().getUserName() + " clicked own profile.");
                         try {
-//                            todo: метод не работает
-                            if (driverService.getByTgId(update.getMessage().getFrom().getId().toString()) != null) {
+                            if (driverService.getByTgId(update.getMessage().getFrom().getId().toString()).isPresent()) {
                                 showProfile(update.getMessage().getFrom().getId());
                             } else {
                                 setAnswer(update.getMessage().getFrom().getId(),
-                                        EmojiParser.parseToUnicode(WARNING_EMOJI) + " Профиля указанного водителя не существует!");
+                                        EmojiParser
+                                                .parseToUnicode(WARNING_EMOJI)
+                                                + " Профиля указанного водителя не существует! " +
+                                                "Для начала пройдите регистрацию /start");
                             }
                         } catch (TelegramApiException e) {
                             throw new RuntimeException(e);
@@ -154,10 +156,8 @@ public class TelegramBotCore extends TelegramLongPollingBot {
                 if (driverService.getAll()
                         .stream()
                         .anyMatch(i -> i.getTgId().equals(String.valueOf(tgId)))) {
-//                    уже зареган
                     showAuthMenu(chatId, null, 1);
                 } else {
-//                    новый водила
                     isDriverAuthenticated = false;
                     isRegisterProcessState = true;
                     setAnswer(chatId, REGISTER_DRIVER);
@@ -274,7 +274,9 @@ public class TelegramBotCore extends TelegramLongPollingBot {
                 .keyboardRow(List.of(editButton))
                 .build();
 
-        Driver driver = driverService.getByTgId(chatId.toString());
+        Driver driver = driverService.getByTgId(chatId.toString())
+                .orElseThrow(() -> new RuntimeException("Такого водителя не существует!"));
+
         SendMessage sendMessage = SendMessage.builder().chatId(chatId).parseMode(ParseMode.HTML)
                 .text(driver.toString())
                 .replyMarkup(keyboard).build();
