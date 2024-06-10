@@ -19,10 +19,10 @@ public class BotInit {
     public void init() throws TelegramApiException {
         TelegramBotsApi telegramBotsApi = new TelegramBotsApi(DefaultBotSession.class);
         try {
-            log.info("Бот успешно запущен!");
+            log.info("The bot has been successfully launched!");
             telegramBotsApi.registerBot(bot);
         } catch (TelegramApiException e) {
-            log.info("Ошибка запуска бота: " + e);
+            log.info("Bot launch error: " + e);
         }
     }
 }

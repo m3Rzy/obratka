@@ -14,10 +14,10 @@ public class ConstantMessage {
                 - Габариты (Д,В,Ш)
                 - Максимальная грузоподъемность""";
 
-    public static final String UNKNOWN_MESSAGE = EmojiParser.parseToUnicode(STOP_SIGN_EMOJI) + " Неизвестная команда!";
+    public static final String UNKNOWN_MESSAGE = EmojiParser.parseToUnicode(STOP_SIGN_EMOJI) + " Неизвестная команда! Выберете кнопки ниже.";
     public static final String FIELDS_IS_EMPTY = EmojiParser.parseToUnicode(GRIMACING_EMOJI) + " Некоторые поля не заполнены!";
     public static final String IS_REGISTERED = EmojiParser.parseToUnicode(WHITE_CHECK_MARK_EMOJI) + " Вы уже зарегистрированы. " +
-            "Если планируете сменить профиль, обращайтесь к @hoiboui.";
+            "Поменять данные можно через кнопку `Мой профиль`.";
     public static final String SUCCESSFUL_REGISTER = ", вы были успешно добавлены в базу.";
     public static final String SUCCESSFUL_PATCH = ", Ваш профиль был успешно изменён.";
 }
