@@ -14,10 +14,22 @@ public class ConstantMessage {
                 - Габариты (Д,В,Ш)
                 - Максимальная грузоподъемность""";
 
+    public static final String PATCH_DRIVER = """
+                 *Ниже необходимо заполнить данные по водителю и авто:*
+                
+                - ФИО (через пробел)
+                - Номер телефона (7**********)
+                - Тип авто [фургон, тент, изотерма, открытый]
+                - Габариты (Д,В,Ш)
+                - Максимальная грузоподъемность
+                
+                Если Вы передумали менять данные, достаточно выбрать /obstop, либо выбрать любую кнопку ниже.""";
+
     public static final String UNKNOWN_MESSAGE = EmojiParser.parseToUnicode(STOP_SIGN_EMOJI) + " Неизвестная команда! Выберете кнопки ниже.";
     public static final String FIELDS_IS_EMPTY = EmojiParser.parseToUnicode(GRIMACING_EMOJI) + " Некоторые поля не заполнены!";
     public static final String IS_REGISTERED = EmojiParser.parseToUnicode(WHITE_CHECK_MARK_EMOJI) + " Вы уже зарегистрированы. " +
             "Поменять данные можно через кнопку `Мой профиль`.";
     public static final String SUCCESSFUL_REGISTER = ", вы были успешно добавлены в базу.";
     public static final String SUCCESSFUL_PATCH = ", Ваш профиль был успешно изменён.";
+    public static final String STOP_PATCH = EmojiParser.parseToUnicode(WARNING_EMOJI) + " Вы отменили изменение данных.";
 }
