@@ -236,7 +236,7 @@ public class DriverServiceHandler {
                             + " _Пример: тент_"));
             throw new RuntimeException("Необходимо указать тип авто!");
         }
-        switch (lines[2].trim()) {
+        switch (lines[2].trim().toLowerCase()) {
             case "фургон" -> driver.setTypeCarBody(TypeCarBody.VAN);
             case "тент" -> driver.setTypeCarBody(TypeCarBody.TENT);
             case "изотерма" -> driver.setTypeCarBody(TypeCarBody.ISOTHERMAL);
