@@ -18,7 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static ru.theft.obratka.util.constant.ConstantMessage.*;
-import static ru.theft.obratka.util.constant.Emoji.WARNING_EMOJI;
+import static ru.theft.obratka.util.constant.Emoji.*;
 
 @Service
 @Slf4j
@@ -169,9 +169,49 @@ public class DriverServiceHandler {
         String[] lines = input.split("\\n");
         Driver driver = new Driver();
         driver.setTgId(String.valueOf(tgId));
+
+        if (lines[0].trim().isEmpty()) {
+            bot.execute(createSendMessage(chatId,
+                    EmojiParser.parseToUnicode(WARNING_EMOJI)
+                            + " Необходимо указать ФИО!\n\n" +
+                            EmojiParser.parseToUnicode(BULB_EMOJI)
+                            + " Пример: _Иванов Иван Иванович_"));
+            throw new RuntimeException("Необходимо указать ФИО!");
+        } else if (lines[0].trim().length() > 255) {
+            bot.execute(createSendMessage(chatId,
+                    EmojiParser.parseToUnicode(WARNING_EMOJI)
+                            + " ФИО не должно превышать более 255 символов!\n\n"
+                            + EmojiParser.parseToUnicode(BULB_EMOJI)
+                            + " Пример: _Иванов Иван Иванович_"));
+            throw new RuntimeException("ФИО не должно превышать более 255 символов!");
+        } else if (lines[0].trim().length() < 4) {
+            bot.execute(createSendMessage(chatId,
+                    EmojiParser.parseToUnicode(WARNING_EMOJI)
+                            + " ФИО должно содержать более 4 символов!\n\n"
+                            + EmojiParser.parseToUnicode(BULB_EMOJI)
+                            + " Пример: _Иванов Иван Иванович_"));
+            throw new RuntimeException("ФИО должно содержать более 4 символов!");
+        }
         driver.setFio(lines[0].trim());
+
+        if (lines[1].trim().length() != 11) {
+            bot.execute(createSendMessage(chatId,
+                    EmojiParser.parseToUnicode(WARNING_EMOJI)
+                            + " Номер телефона должен содержать только 11 символов!\n\n"
+                            + EmojiParser.parseToUnicode(BULB_EMOJI)
+                            + " _Пример: 79998887766_"));
+            throw new RuntimeException(" Номер телефона должен содержать только 11 символов!");
+        }
         driver.setTelephone(lines[1].trim());
 
+        if (lines[2].trim().isEmpty()) {
+            bot.execute(createSendMessage(chatId,
+                    EmojiParser.parseToUnicode(WARNING_EMOJI)
+                            + " Необходимо указать тип авто!\n\n"
+                            + EmojiParser.parseToUnicode(BULB_EMOJI)
+                            + " _Пример: тент_"));
+            throw new RuntimeException("Необходимо указать тип авто!");
+        }
         switch (lines[2].trim()) {
             case "фургон" -> driver.setTypeCarBody(TypeCarBody.VAN);
             case "тент" -> driver.setTypeCarBody(TypeCarBody.TENT);
@@ -179,12 +219,26 @@ public class DriverServiceHandler {
             case "открытый" -> driver.setTypeCarBody(TypeCarBody.OPEN);
             default -> {
                 bot.execute(createSendMessage(chatId, EmojiParser.parseToUnicode(WARNING_EMOJI)
-                        + " Такого типа кузова не существует!"));
+                        + " Такого типа кузова не существует!\n\n"
+                        + EmojiParser.parseToUnicode(BULB_EMOJI)
+                        + " _Впишите из возможных: тент, фургон, изотерма, открытый._"));
                 throw new IllegalArgumentException("Такого типа кузова не существует!");
             }
         }
 
         driver.setDimensions(lines[3].trim());
+        if (lines[4].trim().isEmpty()) {
+            bot.execute(createSendMessage(chatId,
+                    EmojiParser.parseToUnicode(WARNING_EMOJI)
+                            + " Необходимо указать грузоподъемность (кг) авто! _Пример: 1500_"));
+            throw new RuntimeException("Необходимо указать грузоподъемность (кг) авто!");
+        }
+        if (Long.parseLong(lines[4].trim()) < 500 || Long.parseLong(lines[4].trim()) > 20000) {
+            bot.execute(createSendMessage(chatId,
+                    EmojiParser.parseToUnicode(WARNING_EMOJI)
+                            + " Авто должно иметь грузоподъемность не менее 500 кг. и не более 20 000 кг."));
+            throw new RuntimeException("Авто должно иметь грузоподъемность не менее 500 кг. и не более 20 000 кг.");
+        }
         driver.setLoadOpacity(Integer.parseInt(lines[4].trim()));
         log.info("Driver has been created from string.");
         return driver;
