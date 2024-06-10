@@ -20,7 +20,8 @@ public class MenuService {
 
     public SendMessage createFirstMenu(Long chatId, String firstName) {
         InlineKeyboardMarkup keyboard;
-        var startButton = createInlineKeyboardButton("Пройти регистрацию " + EmojiParser.parseToUnicode(Emoji.PAGE_FACING_UP_EMOJI), "reg");
+        var startButton = createInlineKeyboardButton("Пройти регистрацию "
+                + EmojiParser.parseToUnicode(Emoji.PAGE_FACING_UP_EMOJI), "reg");
         keyboard = InlineKeyboardMarkup.builder()
                 .keyboardRow(List.of(startButton))
                 .build();
@@ -48,9 +49,11 @@ public class MenuService {
 
         List<KeyboardRow> keyboard = new ArrayList<>();
         KeyboardRow keyboardFirstRow = new KeyboardRow();
-        keyboardFirstRow.add(new KeyboardButton(EmojiParser.parseToUnicode(Emoji.BUST_IN_SILHOUETTE_EMOJI) + " Мой профиль"));
+        keyboardFirstRow.add(new KeyboardButton(EmojiParser
+                .parseToUnicode(Emoji.BUST_IN_SILHOUETTE_EMOJI) + " Мой профиль"));
         KeyboardRow keyboardSecondRow = new KeyboardRow();
-        keyboardSecondRow.add(new KeyboardButton(EmojiParser.parseToUnicode(Emoji.TRUCK_EMOJI) + " Поделиться маршрутом"));
+        keyboardSecondRow.add(new KeyboardButton(EmojiParser
+                .parseToUnicode(Emoji.TRUCK_EMOJI) + " Поделиться маршрутом"));
 
         keyboard.add(keyboardFirstRow);
         keyboard.add(keyboardSecondRow);
@@ -68,11 +71,13 @@ public class MenuService {
             case 2 -> {
                 DriverServiceHandler.isDriverAuthenticated = true;
                 DriverServiceHandler.isRegisterProcessState = false;
-                message.setText(EmojiParser.parseToUnicode(Emoji.WHITE_CHECK_MARK_EMOJI) + " " + tgUserName + SUCCESSFUL_REGISTER);
+                message.setText(EmojiParser.parseToUnicode(Emoji.WHITE_CHECK_MARK_EMOJI)
+                        + " " + tgUserName + SUCCESSFUL_REGISTER);
             }
             case 3 -> {
                 DriverServiceHandler.isPatchProcessState = false;
-                message.setText(EmojiParser.parseToUnicode(Emoji.WHITE_CHECK_MARK_EMOJI) + " " + tgUserName + SUCCESSFUL_PATCH);
+                message.setText(EmojiParser.parseToUnicode(Emoji.WHITE_CHECK_MARK_EMOJI)
+                        + " " + tgUserName + SUCCESSFUL_PATCH);
             }
             case 4 -> {
                 DriverServiceHandler.isPatchProcessState = false;
