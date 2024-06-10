@@ -9,6 +9,8 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import ru.theft.obratka.destination.model.Destination;
+import ru.theft.obratka.destination.service.DestinationService;
 import ru.theft.obratka.driver.model.Driver;
 import ru.theft.obratka.driver.model.TypeCarBody;
 import ru.theft.obratka.driver.service.DriverService;
@@ -29,8 +31,10 @@ public class DriverServiceHandler {
     public static boolean isDriverAuthenticated = false;
     public static boolean isRegisterProcessState = false;
     public static boolean isPatchProcessState = false;
+    public static boolean isArrivalProcessState = false;
 
     private final DriverService driverService;
+    private final DestinationService destinationService;
 
     private final List<String> telegramIds = new ArrayList<>();
     private final MenuService menuService = new MenuService();
@@ -65,9 +69,14 @@ public class DriverServiceHandler {
                     bot.execute(menuService.createAuthMenu(update.getMessage().getChatId(),
                             "", 4));
                 }
+                if (isArrivalProcessState) {
+                    bot.execute(menuService.createAuthMenu(update.getMessage().getChatId(),
+                            "", 6));
+                }
             }
             case "\uD83D\uDC64 Мой профиль" -> {
                 isPatchProcessState = false;
+                isArrivalProcessState = false;
                 log.info(update.getMessage().getFrom().getUserName() + " clicked own profile.");
                 if (driverService.getByTgId(update.getMessage().getFrom().getId().toString()).isPresent()) {
                     showProfile(update.getMessage().getFrom().getId(), bot);
@@ -81,8 +90,9 @@ public class DriverServiceHandler {
                 isPatchProcessState = false;
                 log.info(update.getMessage().getFrom().getUserName() + " clicked share path.");
                 if (driverService.getByTgId(update.getMessage().getFrom().getId().toString()).isPresent()) {
+                    isArrivalProcessState = true;
                     bot.execute(createSendMessage(update.getMessage().getChatId(),
-                            "Делаем метод < Поделиться маршрутом >..."));
+                            REGISTER_ARRIVAL));
                 } else {
                     bot.execute(createSendMessage(update.getMessage().getChatId(),
                             EmojiParser.parseToUnicode(Emoji.WARNING_EMOJI) +
@@ -94,7 +104,7 @@ public class DriverServiceHandler {
     }
 
     private void handleDefaultMessage(Update update, TelegramBotCore bot) throws TelegramApiException {
-        if (isDriverAuthenticated && !isPatchProcessState) {
+        if (isDriverAuthenticated && !isPatchProcessState && !isArrivalProcessState) {
             bot.execute(menuService.createAuthMenu(update.getMessage().getChatId(),
                     update.getMessage().getFrom().getUserName(), 0));
         } else if (isRegisterProcessState) {
@@ -117,6 +127,18 @@ public class DriverServiceHandler {
                 if (areAllFieldsFilled(driver)) {
                     driverService.patch(driver, update.getMessage().getFrom().getId().toString());
                     bot.execute(menuService.createAuthMenu(update.getMessage().getChatId(), driver.getFio(), 3));
+                }
+            } catch (ArrayIndexOutOfBoundsException e) {
+                bot.execute(createSendMessage(update.getMessage().getChatId(), FIELDS_IS_EMPTY));
+            }
+        } else if (isArrivalProcessState) {
+            try {
+                Destination destination = createDestinationFromString(update.getMessage().getText(),
+                        update.getMessage().getChatId(), bot);
+                if (areAllFieldsFilled(destination)) {
+                    destinationService.add(destination, String.valueOf(update.getMessage().getFrom().getId()));
+                    bot.execute(menuService.createAuthMenu(update.getMessage().getChatId(),
+                            update.getMessage().getFrom().getUserName(), 5));
                 }
             } catch (ArrayIndexOutOfBoundsException e) {
                 bot.execute(createSendMessage(update.getMessage().getChatId(), FIELDS_IS_EMPTY));
@@ -232,18 +254,60 @@ public class DriverServiceHandler {
         if (lines[4].trim().isEmpty()) {
             bot.execute(createSendMessage(chatId,
                     EmojiParser.parseToUnicode(WARNING_EMOJI)
-                            + " Необходимо указать грузоподъемность (кг) авто! _Пример: 1500_"));
+                            + " Необходимо указать грузоподъемность (кг) авто!\n\n"
+                            + EmojiParser.parseToUnicode(BULB_EMOJI)
+                            + " Пример: _1500_"));
             throw new RuntimeException("Необходимо указать грузоподъемность (кг) авто!");
         }
         if (Long.parseLong(lines[4].trim()) < 500 || Long.parseLong(lines[4].trim()) > 20000) {
             bot.execute(createSendMessage(chatId,
                     EmojiParser.parseToUnicode(WARNING_EMOJI)
-                            + " Авто должно иметь грузоподъемность не менее 500 кг. и не более 20 000 кг."));
+                            + " Авто должно иметь грузоподъемность не менее 500 кг. и не более 20 000 кг.\n\n"
+                            + EmojiParser.parseToUnicode(BULB_EMOJI)
+                            + " Пример: _1500_"));
             throw new RuntimeException("Авто должно иметь грузоподъемность не менее 500 кг. и не более 20 000 кг.");
         }
         driver.setLoadOpacity(Integer.parseInt(lines[4].trim()));
         log.info("Driver has been created from string.");
         return driver;
+    }
+
+    private Destination createDestinationFromString(String input, long chatId,
+                                                    TelegramBotCore bot) throws TelegramApiException {
+        String[] lines = input.split("\\n");
+        Destination destination = new Destination();
+        if (lines[0].trim().isEmpty() || lines[0].trim().length() < 3) {
+            bot.execute(createSendMessage(chatId,
+                    EmojiParser.parseToUnicode(WARNING_EMOJI)
+                            + " Необходимо указать изначальную точку маршрута!"
+                            + EmojiParser.parseToUnicode(BULB_EMOJI)
+                            + " Пример: _Барнаул_"));
+            throw new RuntimeException("Необходимо указать изначальную точку маршрута!");
+        }
+        destination.setFromRoute(lines[0].trim());
+
+        if (lines[1].trim().isEmpty() || lines[1].trim().length() < 3) {
+            bot.execute(createSendMessage(chatId,
+                    EmojiParser.parseToUnicode(WARNING_EMOJI)
+                            + " Необходимо указать конечную точку маршрута!"
+                            + EmojiParser.parseToUnicode(BULB_EMOJI)
+                            + " Пример: _Санкт-Петербург_"));
+            throw new RuntimeException("Необходимо указать конечную точку маршрута!");
+        }
+        destination.setToRoute(lines[1].trim());
+
+        if (lines[2].trim().isEmpty() || lines[2].trim().length() < 3) {
+            bot.execute(createSendMessage(chatId,
+                    EmojiParser.parseToUnicode(WARNING_EMOJI)
+                            + " Необходимо указать примерную дату прибытия на конечную точку!"
+                            + EmojiParser.parseToUnicode(BULB_EMOJI)
+                            + " Пример: завтра"));
+            throw new RuntimeException("Необходимо указать примерную дату прибытия на конечную точку!");
+        }
+        destination.setDateOfArrival(lines[2].trim());
+        destination.setCreatedAt(LocalDateTime.now());
+        log.info("Destination has been created from string.");
+        return destination;
     }
 
     private boolean isNewUser(String tg) {

@@ -32,4 +32,14 @@ public class ConstantMessage {
     public static final String SUCCESSFUL_REGISTER = ", вы были успешно добавлены в базу.";
     public static final String SUCCESSFUL_PATCH = ", Ваш профиль был успешно изменён.";
     public static final String STOP_PATCH = EmojiParser.parseToUnicode(WARNING_EMOJI) + " Вы отменили изменение данных.";
+    public static final String STOP_ARRIVAL = EmojiParser.parseToUnicode(WARNING_EMOJI) + " Вы отменили добавление маршрута.";
+    public static final String REGISTER_ARRIVAL = """
+                 *Ниже необходимо заполнить данные по Вашему текущему маршруту:*
+                
+                - Откуда
+                - Куда
+                - Примерная дата прибытия
+                
+                Если Вы передумали добавлять маршрут, достаточно выбрать /obstop, либо выбрать любую кнопку ниже.""";
+    public static final String SHARE_ARRIVAL = EmojiParser.parseToUnicode(WHITE_CHECK_MARK_EMOJI) + " Маршрут отправлен логисту.";
 }

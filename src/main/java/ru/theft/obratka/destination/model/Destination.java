@@ -37,4 +37,16 @@ public class Destination {
     @ManyToOne
     @JoinColumn(name = "driver_id", referencedColumnName = "id", nullable = false)
     private Driver driver;
+
+    @Override
+    public String toString() {
+        return "Destination{" +
+                "id=" + id +
+                ", fromRoute='" + fromRoute + '\'' +
+                ", toRoute='" + toRoute + '\'' +
+                ", dateOfArrival='" + dateOfArrival + '\'' +
+                ", createdAt=" + createdAt +
+                ", driver=" + driver.getFio() +
+                '}';
+    }
 }

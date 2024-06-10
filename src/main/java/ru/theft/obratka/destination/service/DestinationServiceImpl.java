@@ -23,7 +23,7 @@ public class DestinationServiceImpl implements DestinationService {
         Driver driver = driverService.getByTgId(tgId)
                 .orElseThrow(() -> new RuntimeException("Водителя не существует!"));
         destination.setDriver(driver);
-        log.info("Destination {} created.", destination);
+        log.info("{} created.", destination);
         return destinationRepository.save(destination);
     }
 

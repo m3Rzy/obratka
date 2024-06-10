@@ -83,6 +83,14 @@ public class MenuService {
                 DriverServiceHandler.isPatchProcessState = false;
                 message.setText(STOP_PATCH);
             }
+            case 5 -> {
+                DriverServiceHandler.isArrivalProcessState = false;
+                message.setText(SHARE_ARRIVAL);
+            }
+            case 6 -> {
+                DriverServiceHandler.isArrivalProcessState = false;
+                message.setText(STOP_ARRIVAL);
+            }
             default -> {
                 message.setText("Произошла ошибка при статусе");
             }
