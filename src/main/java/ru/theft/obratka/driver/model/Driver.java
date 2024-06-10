@@ -2,6 +2,9 @@ package ru.theft.obratka.driver.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.time.LocalDateTime;
 
 @Data
 @Entity
@@ -32,6 +35,10 @@ public class Driver {
 
     @Column(name = "driver_load_opacity", nullable = false)
     private int loadOpacity;
+
+    @CreationTimestamp
+    @Column(name = "driver_created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
 
     @Override
     public String toString() {

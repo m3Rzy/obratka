@@ -14,6 +14,7 @@ import ru.theft.obratka.driver.model.TypeCarBody;
 import ru.theft.obratka.driver.service.DriverService;
 import ru.theft.obratka.util.constant.Emoji;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -101,6 +102,7 @@ public class DriverServiceHandler {
                 Driver driver = createDriverFromString(update.getMessage().getText(),
                         update.getMessage().getFrom().getId(), update.getMessage().getChatId(), bot);
                 if (areAllFieldsFilled(driver)) {
+                    driver.setCreatedAt(LocalDateTime.now());
                     driverService.add(driver);
                     bot.execute(menuService.createAuthMenu(update.getMessage().getChatId(),
                             driver.getFio(), 2));
