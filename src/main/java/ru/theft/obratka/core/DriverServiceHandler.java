@@ -46,6 +46,12 @@ public class DriverServiceHandler {
                     update.getMessage().getText());
 
             if (isNewUser(update.getMessage().getFrom().getId().toString())) {
+//
+                isArrivalProcessState = false;
+                isRegisterProcessState = false;
+                isPatchProcessState = false;
+                isDriverAuthenticated = false;
+
                 bot.execute(menuService.createFirstMenu(update.getMessage().getChatId(),
                         update.getMessage().getFrom().getFirstName()));
             } else {
