@@ -15,10 +15,13 @@ import ru.theft.obratka.driver.model.Driver;
 import ru.theft.obratka.driver.model.TypeCarBody;
 import ru.theft.obratka.driver.service.DriverService;
 import ru.theft.obratka.util.constant.Emoji;
+import ru.theft.obratka.util.constant.UserState;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import static ru.theft.obratka.util.constant.ConstantMessage.*;
 import static ru.theft.obratka.util.constant.Emoji.*;
@@ -28,10 +31,7 @@ import static ru.theft.obratka.util.constant.Emoji.*;
 @RequiredArgsConstructor
 public class DriverServiceHandler {
 
-    public static boolean isDriverAuthenticated = false;
-    public static boolean isRegisterProcessState = false;
-    public static boolean isPatchProcessState = false;
-    public static boolean isArrivalProcessState = false;
+    private final ConcurrentMap<Long, UserState> userStates = new ConcurrentHashMap<>();
 
     private final DriverService driverService;
     private final DestinationService destinationService;
@@ -41,17 +41,15 @@ public class DriverServiceHandler {
 
     public void handleUpdate(Update update, TelegramBotCore bot) throws TelegramApiException {
         if (update.hasMessage() && update.getMessage().hasText()) {
+            Long userId = update.getMessage().getFrom().getId();
+
+            userStates.putIfAbsent(userId, new UserState());
             log.info("{} [{}]: {}", update.getMessage().getFrom().getUserName(),
-                    update.getMessage().getFrom().getId(),
+                    userId,
                     update.getMessage().getText());
 
-            if (isNewUser(update.getMessage().getFrom().getId().toString())) {
-//
-                isArrivalProcessState = false;
-                isRegisterProcessState = false;
-                isPatchProcessState = false;
-                isDriverAuthenticated = false;
-
+            if (isNewUser(userId.toString())) {
+                resetUserState(userId);
                 bot.execute(menuService.createFirstMenu(update.getMessage().getChatId(),
                         update.getMessage().getFrom().getFirstName()));
             } else {
@@ -64,25 +62,28 @@ public class DriverServiceHandler {
     }
 
     private void processMessage(Update update, TelegramBotCore bot) throws TelegramApiException {
+        Long userId = update.getMessage().getFrom().getId();
+        UserState userState = userStates.get(userId);
+
         switch (update.getMessage().getText()) {
             case "/start" -> {
-                isRegisterProcessState = false;
+                userState.setRegisterProcessState(false);
                 bot.execute(menuService.createFirstMenu(update.getMessage().getChatId(),
                         update.getMessage().getFrom().getFirstName()));
             }
             case "/obstop" -> {
-                if (isPatchProcessState) {
+                if (userState.isPatchProcessState()) {
                     bot.execute(menuService.createAuthMenu(update.getMessage().getChatId(),
-                            "", 4));
+                            "", 4, userState));
                 }
-                if (isArrivalProcessState) {
+                if (userState.isArrivalProcessState()) {
                     bot.execute(menuService.createAuthMenu(update.getMessage().getChatId(),
-                            "", 6));
+                            "", 6, userState));
                 }
             }
             case "\uD83D\uDC64 Мой профиль" -> {
-                isPatchProcessState = false;
-                isArrivalProcessState = false;
+                userState.setPatchProcessState(false);
+                userState.setArrivalProcessState(false);
                 log.info(update.getMessage().getFrom().getUserName() + " clicked own profile.");
                 if (driverService.getByTgId(update.getMessage().getFrom().getId().toString()).isPresent()) {
                     showProfile(update.getMessage().getFrom().getId(), bot);
@@ -93,10 +94,10 @@ public class DriverServiceHandler {
                 }
             }
             case "\uD83D\uDE9A Поделиться маршрутом" -> {
-                isPatchProcessState = false;
+                userState.setPatchProcessState(false);
                 log.info(update.getMessage().getFrom().getUserName() + " clicked share path.");
                 if (driverService.getByTgId(update.getMessage().getFrom().getId().toString()).isPresent()) {
-                    isArrivalProcessState = true;
+                    userState.setArrivalProcessState(true);
                     bot.execute(createSendMessage(update.getMessage().getChatId(),
                             REGISTER_ARRIVAL));
                 } else {
@@ -110,10 +111,13 @@ public class DriverServiceHandler {
     }
 
     private void handleDefaultMessage(Update update, TelegramBotCore bot) throws TelegramApiException {
-        if (isDriverAuthenticated && !isPatchProcessState && !isArrivalProcessState) {
+        Long userId = update.getMessage().getFrom().getId();
+        UserState userState = userStates.get(userId);
+
+        if (userState.isDriverAuthenticated() && !userState.isPatchProcessState() && !userState.isArrivalProcessState()) {
             bot.execute(menuService.createAuthMenu(update.getMessage().getChatId(),
-                    update.getMessage().getFrom().getUserName(), 0));
-        } else if (isRegisterProcessState) {
+                    update.getMessage().getFrom().getUserName(), 0, userState));
+        } else if (userState.isRegisterProcessState()) {
             try {
                 Driver driver = createDriverFromString(update.getMessage().getText(),
                         update.getMessage().getFrom().getId(), update.getMessage().getChatId(), bot);
@@ -121,30 +125,30 @@ public class DriverServiceHandler {
                     driver.setCreatedAt(LocalDateTime.now());
                     driverService.add(driver);
                     bot.execute(menuService.createAuthMenu(update.getMessage().getChatId(),
-                            driver.getFio(), 2));
+                            driver.getFio(), 2, userState));
                 }
             } catch (ArrayIndexOutOfBoundsException e) {
                 bot.execute(createSendMessage(update.getMessage().getChatId(), FIELDS_IS_EMPTY));
             }
-        } else if (isPatchProcessState) {
+        } else if (userState.isPatchProcessState()) {
             try {
                 Driver driver = createDriverFromString(update.getMessage().getText(),
                         update.getMessage().getFrom().getId(), update.getMessage().getChatId(), bot);
                 if (areAllFieldsFilled(driver)) {
                     driverService.patch(driver, update.getMessage().getFrom().getId().toString());
-                    bot.execute(menuService.createAuthMenu(update.getMessage().getChatId(), driver.getFio(), 3));
+                    bot.execute(menuService.createAuthMenu(update.getMessage().getChatId(), driver.getFio(), 3, userState));
                 }
             } catch (ArrayIndexOutOfBoundsException e) {
                 bot.execute(createSendMessage(update.getMessage().getChatId(), FIELDS_IS_EMPTY));
             }
-        } else if (isArrivalProcessState) {
+        } else if (userState.isArrivalProcessState()) {
             try {
                 Destination destination = createDestinationFromString(update.getMessage().getText(),
                         update.getMessage().getChatId(), bot);
                 if (areAllFieldsFilled(destination)) {
                     destinationService.add(destination, String.valueOf(update.getMessage().getFrom().getId()));
                     bot.execute(menuService.createAuthMenu(update.getMessage().getChatId(),
-                            update.getMessage().getFrom().getUserName(), 5));
+                            update.getMessage().getFrom().getUserName(), 5, userState));
                 }
             } catch (ArrayIndexOutOfBoundsException e) {
                 bot.execute(createSendMessage(update.getMessage().getChatId(), FIELDS_IS_EMPTY));
@@ -156,23 +160,33 @@ public class DriverServiceHandler {
 
     private void handleCallbackQuery(String callData, long chatId, long tgId,
                                      TelegramBotCore bot) throws TelegramApiException {
+        UserState userState = userStates.get(tgId);
+
         switch (callData) {
             case "reg":
                 if (driverService.getAll().stream().anyMatch(i -> i.getTgId().equals(String.valueOf(tgId)))) {
-                    bot.execute(menuService.createAuthMenu(chatId, null, 1));
+                    bot.execute(menuService.createAuthMenu(chatId, null, 1, userState));
                 } else {
-                    isDriverAuthenticated = false;
-                    isRegisterProcessState = true;
+                    userState.setDriverAuthenticated(false);
+                    userState.setRegisterProcessState(true);
                     bot.execute(createSendMessage(chatId, REGISTER_DRIVER));
                 }
                 break;
             case "edit":
-                isPatchProcessState = true;
+                userState.setPatchProcessState(true);
                 bot.execute(createSendMessage(chatId, PATCH_DRIVER));
                 break;
             default:
                 break;
         }
+    }
+
+    private void resetUserState(Long userId) {
+        UserState userState = userStates.get(userId);
+        userState.setDriverAuthenticated(false);
+        userState.setRegisterProcessState(false);
+        userState.setPatchProcessState(false);
+        userState.setArrivalProcessState(false);
     }
 
     private void showProfile(Long chatId, TelegramBotCore bot) throws TelegramApiException {

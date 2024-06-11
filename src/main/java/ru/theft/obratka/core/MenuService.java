@@ -9,6 +9,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import ru.theft.obratka.util.constant.Emoji;
+import ru.theft.obratka.util.constant.UserState;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +40,7 @@ public class MenuService {
         return message;
     }
 
-    public SendMessage createAuthMenu(Long chatId, String tgUserName, int state) {
+    public SendMessage createAuthMenu(Long chatId, String tgUserName, int state, UserState userState) {
         ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
         SendMessage message = new SendMessage();
         message.setReplyMarkup(replyKeyboardMarkup);
@@ -64,31 +65,31 @@ public class MenuService {
                 message.setText(UNKNOWN_MESSAGE);
             }
             case 1 -> {
-                DriverServiceHandler.isDriverAuthenticated = true;
-                DriverServiceHandler.isRegisterProcessState = false;
+                userState.setDriverAuthenticated(true);
+                userState.setRegisterProcessState(false);
                 message.setText(IS_REGISTERED);
             }
             case 2 -> {
-                DriverServiceHandler.isDriverAuthenticated = true;
-                DriverServiceHandler.isRegisterProcessState = false;
+                userState.setDriverAuthenticated(true);
+                userState.setRegisterProcessState(false);
                 message.setText(EmojiParser.parseToUnicode(Emoji.WHITE_CHECK_MARK_EMOJI)
                         + " " + tgUserName + SUCCESSFUL_REGISTER);
             }
             case 3 -> {
-                DriverServiceHandler.isPatchProcessState = false;
+                userState.setPatchProcessState(false);
                 message.setText(EmojiParser.parseToUnicode(Emoji.WHITE_CHECK_MARK_EMOJI)
                         + " " + tgUserName + SUCCESSFUL_PATCH);
             }
             case 4 -> {
-                DriverServiceHandler.isPatchProcessState = false;
+                userState.setPatchProcessState(false);
                 message.setText(STOP_PATCH);
             }
             case 5 -> {
-                DriverServiceHandler.isArrivalProcessState = false;
+                userState.setArrivalProcessState(false);
                 message.setText(SHARE_ARRIVAL);
             }
             case 6 -> {
-                DriverServiceHandler.isArrivalProcessState = false;
+                userState.setArrivalProcessState(false);
                 message.setText(STOP_ARRIVAL);
             }
             default -> {
