@@ -73,6 +73,7 @@ public class DriverServiceHandler {
                 userState.setRegisterPatronymicState(false);
                 userState.setRegisterPhoneState(false);
                 userState.setRegisterProcessState(false);
+                userState.setRegisterDriverFinal(false);
                 driverFields.clear();
                 bot.execute(menuService.createFirstMenu(update.getMessage().getChatId(),
                         update.getMessage().getFrom().getFirstName()));
@@ -210,7 +211,6 @@ public class DriverServiceHandler {
             }
 
         } else if (userState.isPatchProcessState()) {
-            // todo: сделать редактирование водилы
             try {
                 String text = update.getMessage().getText();
                 if (userState.isEditSurnameState()) {
