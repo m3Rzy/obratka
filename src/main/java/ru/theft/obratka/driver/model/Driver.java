@@ -41,4 +41,11 @@ public class Driver {
                         "```",
                 s_fio, fio, s_telephone, "+" + telephone);
     }
+
+    public String toTerminal() {
+        return "[" + tgId + ", " +
+               fio + ", " +
+               telephone + ", " +
+               createdAt + ".]";
+    }
 }

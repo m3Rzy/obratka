@@ -49,15 +49,23 @@ public class MenuService {
         replyKeyboardMarkup.setOneTimeKeyboard(false);
 
         List<KeyboardRow> keyboard = new ArrayList<>();
+
         KeyboardRow keyboardFirstRow = new KeyboardRow();
         keyboardFirstRow.add(new KeyboardButton(EmojiParser
-                .parseToUnicode(Emoji.BUST_IN_SILHOUETTE_EMOJI) + " Мой профиль"));
+                .parseToUnicode(Emoji.TRUCK_EMOJI) + " Добавить авто"));
+
         KeyboardRow keyboardSecondRow = new KeyboardRow();
         keyboardSecondRow.add(new KeyboardButton(EmojiParser
-                .parseToUnicode(Emoji.TRUCK_EMOJI) + " Поделиться маршрутом"));
+                .parseToUnicode(Emoji.BUST_IN_SILHOUETTE_EMOJI) + " Мой профиль"));
+
+        KeyboardRow keyboardThirdRow = new KeyboardRow();
+        keyboardThirdRow.add(new KeyboardButton(EmojiParser
+                .parseToUnicode(Emoji.MOTOR_WAY) + " Поделиться маршрутом"));
+
 
         keyboard.add(keyboardFirstRow);
         keyboard.add(keyboardSecondRow);
+        keyboard.add(keyboardThirdRow);
         replyKeyboardMarkup.setKeyboard(keyboard);
 
         switch (state) {

@@ -16,4 +16,12 @@ public class UserState {
     private boolean registerPatronymicState = false;
     private boolean registerPhoneState = false;
     private boolean registerDriverFinal = false;
+
+    private boolean editSurnameState = false;
+    private boolean editNameState = false;
+    private boolean editPatronymicState = false;
+    private boolean editPhoneState = false;
+    private boolean editDriverFinal = false;
+
+    private boolean registerNewCarState = false;
 }

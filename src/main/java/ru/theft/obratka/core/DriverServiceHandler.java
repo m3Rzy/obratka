@@ -99,7 +99,7 @@ public class DriverServiceHandler {
                                     + " Профиля указанного водителя не существует! " + "Для начала пройдите регистрацию /start"));
                 }
             }
-            case "\uD83D\uDE9A Поделиться маршрутом" -> {
+            case "\uD83D\uDEE3 Поделиться маршрутом" -> {
                 userState.setPatchProcessState(false);
                 log.info(update.getMessage().getFrom().getUserName() + " clicked share path.");
                 if (driverService.getByTgId(update.getMessage().getFrom().getId().toString()).isPresent()) {
@@ -110,6 +110,19 @@ public class DriverServiceHandler {
                     bot.execute(createSendMessage(update.getMessage().getChatId(),
                             EmojiParser.parseToUnicode(Emoji.WARNING_EMOJI) +
                                     " Профиля указанного водителя не существует! " + "Для начала пройдите регистрацию /start"));
+                }
+            }
+
+            case "\uD83D\uDE9A Добавить авто" -> {
+                userState.setPatchProcessState(false);
+                userState.setArrivalProcessState(false);
+                log.info(update.getMessage().getFrom().getUserName() + " clicked added new car.");
+                if (driverService.getByTgId(update.getMessage().getFrom().getId().toString()).isPresent()) {
+                    userState.setRegisterNewCarState(true);
+                } else {
+                    bot.execute(createSendMessage(update.getMessage().getChatId(),
+                            EmojiParser.parseToUnicode(Emoji.WARNING_EMOJI)
+                                    + " Профиля указанного водителя не существует! " + "Для начала пройдите регистрацию /start"));
                 }
             }
             default -> handleDefaultMessage(update, bot);
@@ -130,10 +143,10 @@ public class DriverServiceHandler {
                     if (text.isEmpty()) {
                         throw new RuntimeException(VALID_DRIVER_SURNAME_EMPTY);
                     }
-                    if (text.length() > 255) {
+                    if (text.length() > 80) {
                         throw new RuntimeException(VALID_DRIVER_SURNAME_OVER);
                     }
-                    driverFields.add(update.getMessage().getText());
+                    driverFields.add(text);
                     userState.setRegisterSurnameState(false);
                     userState.setRegisterNameState(true);
                     bot.execute(createSendMessage(userId, TEXT_REGISTER_NAME_DRIVER));
@@ -145,10 +158,10 @@ public class DriverServiceHandler {
                     if (text.isEmpty()) {
                         throw new RuntimeException(VALID_DRIVER_NAME_EMPTY);
                     }
-                    if (text.length() > 255) {
+                    if (text.length() > 80) {
                         throw new RuntimeException(VALID_DRIVER_NAME_OVER);
                     }
-                    driverFields.add(update.getMessage().getText());
+                    driverFields.add(text);
                     userState.setRegisterNameState(false);
                     userState.setRegisterPatronymicState(true);
                     bot.execute(createSendMessage(userId, TEXT_REGISTER_PATRONYMIC_DRIVER));
@@ -157,10 +170,10 @@ public class DriverServiceHandler {
                 }
 
                 if (userState.isRegisterPatronymicState()) {
-                    if (text.length() > 255) {
+                    if (text.length() > 80) {
                         throw new RuntimeException(VALID_DRIVER_PATRONYMIC_OVER);
                     }
-                    driverFields.add(update.getMessage().getText());
+                    driverFields.add(text);
                     userState.setRegisterPatronymicState(false);
                     userState.setRegisterPhoneState(true);
                     bot.execute(createSendMessage(userId, TEXT_REGISTER_PHONE_DRIVER));
@@ -174,7 +187,7 @@ public class DriverServiceHandler {
                     if (text.length() != 10) {
                         throw new RuntimeException(VALID_DRIVER_PHONE_OVER);
                     }
-                    driverFields.add("7" + update.getMessage().getText());
+                    driverFields.add("7" + text);
                     userState.setRegisterPhoneState(false);
                     userState.setRegisterDriverFinal(true);
                 }
@@ -190,6 +203,7 @@ public class DriverServiceHandler {
 
                     bot.execute(menuService.createAuthMenu(update.getMessage().getChatId(),
                             driverFields.get(1), 2, userState));
+                    driverFields.clear();
                 }
             } catch (Exception e) {
                 bot.execute(createSendMessage(userId, e.getMessage()));
@@ -197,6 +211,76 @@ public class DriverServiceHandler {
 
         } else if (userState.isPatchProcessState()) {
             // todo: сделать редактирование водилы
+            try {
+                String text = update.getMessage().getText();
+                if (userState.isEditSurnameState()) {
+                    if (text.isEmpty()) {
+                        throw new RuntimeException(VALID_DRIVER_SURNAME_EMPTY);
+                    }
+                    if (text.length() > 255) {
+                        throw new RuntimeException(VALID_DRIVER_SURNAME_OVER);
+                    }
+                    driverFields.add(text);
+                    userState.setEditSurnameState(false);
+                    userState.setEditNameState(true);
+                    bot.execute(createSendMessage(userId, TEXT_REGISTER_NAME_DRIVER));
+                    return;
+
+                }
+
+                if (userState.isEditNameState()) {
+                    if (text.isEmpty()) {
+                        throw new RuntimeException(VALID_DRIVER_NAME_EMPTY);
+                    }
+                    if (text.length() > 255) {
+                        throw new RuntimeException(VALID_DRIVER_NAME_OVER);
+                    }
+                    driverFields.add(text);
+                    userState.setEditNameState(false);
+                    userState.setEditPatronymicState(true);
+                    bot.execute(createSendMessage(userId, TEXT_REGISTER_PATRONYMIC_DRIVER));
+                    return;
+                }
+
+                if (userState.isEditPatronymicState()) {
+                    if (text.length() > 255) {
+                        throw new RuntimeException(VALID_DRIVER_PATRONYMIC_OVER);
+                    }
+                    driverFields.add(text);
+                    userState.setEditPatronymicState(false);
+                    userState.setEditPhoneState(true);
+                    bot.execute(createSendMessage(userId, TEXT_REGISTER_PHONE_DRIVER));
+                    return;
+                }
+
+                if (userState.isEditPhoneState()) {
+                    if (text.isEmpty()) {
+                        throw new RuntimeException(VALID_DRIVER_PHONE_EMPTY);
+                    }
+                    if (text.length() != 10) {
+                        throw new RuntimeException(VALID_DRIVER_PHONE_OVER);
+                    }
+                    driverFields.add("7" + text);
+                    userState.setEditPhoneState(false);
+                    userState.setEditDriverFinal(true);
+                }
+
+                if (userState.isEditDriverFinal()) {
+                    userState.setEditDriverFinal(false);
+                    driverService.patch(Driver
+                            .builder()
+                            .tgId(userId.toString())
+                            .fio(driverFields.get(0) + " " + driverFields.get(1) + " " + driverFields.get(2))
+                            .telephone(driverFields.get(3))
+                            .createdAt(LocalDateTime.now()).build(), userId.toString());
+
+                    bot.execute(menuService.createAuthMenu(update.getMessage().getChatId(), driverFields.get(1),
+                            3, userState));
+                    driverFields.clear();
+                }
+            } catch (Exception e) {
+                bot.execute(createSendMessage(userId, e.getMessage()));
+            }
         } else if (userState.isArrivalProcessState()) {
             try {
                 Destination destination = createDestinationFromString(update.getMessage().getText(),
@@ -209,7 +293,10 @@ public class DriverServiceHandler {
             } catch (ArrayIndexOutOfBoundsException e) {
                 bot.execute(createSendMessage(update.getMessage().getChatId(), FIELDS_IS_EMPTY));
             }
-        } else {
+        } else if (userState.isRegisterNewCarState()) {
+//            todo: зарегать новое авто
+        }
+        else {
             bot.execute(createSendMessage(update.getMessage().getChatId(), "Сначала пройдите регистрацию! /start"));
         }
     }
@@ -230,12 +317,15 @@ public class DriverServiceHandler {
                     userState.setRegisterNameState(false);
                     userState.setRegisterPatronymicState(false);
                     userState.setRegisterPhoneState(false);
+
+                    userState.setRegisterNewCarState(false);
                     bot.execute(createSendMessage(chatId, TEXT_REGISTER_SURNAME_DRIVER));
                 }
                 break;
             case "edit":
                 userState.setPatchProcessState(true);
-                bot.execute(createSendMessage(chatId, PATCH_DRIVER));
+                userState.setEditSurnameState(true);
+                bot.execute(createSendMessage(chatId, TEXT_REGISTER_SURNAME_DRIVER));
                 break;
             default:
                 break;

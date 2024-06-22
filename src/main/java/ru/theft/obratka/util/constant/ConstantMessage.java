@@ -5,25 +5,6 @@ import com.vdurmont.emoji.EmojiParser;
 import static ru.theft.obratka.util.constant.Emoji.*;
 
 public class ConstantMessage {
-    public static final String REGISTER_DRIVER = """
-                 *Ниже необходимо заполнить данные по водителю и авто:*
-                
-                - ФИО (через пробел)
-                - Номер телефона, начиная с 7
-                - Тип авто (фургон, тент, изотерма, открытый)
-                - Габариты (ДхВхШ)
-                - Максимальная грузоподъемность (кг, без пробелов и символов)""";
-
-    public static final String PATCH_DRIVER = """
-                 *Ниже необходимо заполнить данные по водителю и авто:*
-                
-                - ФИО (через пробел)
-                - Номер телефона, начиная с 7
-                - Тип авто (фургон, тент, изотерма, открытый)
-                - Габариты (ДхВхШ)
-                - Максимальная грузоподъемность (кг, без пробелов и символов)
-                
-                Если Вы передумали менять данные, достаточно выбрать /obstop, либо выбрать любую кнопку ниже.""";
 
     public static final String UNKNOWN_MESSAGE = EmojiParser.parseToUnicode(STOP_SIGN_EMOJI) + " Неизвестная команда! Выберете кнопки ниже.";
     public static final String FIELDS_IS_EMPTY = EmojiParser.parseToUnicode(GRIMACING_EMOJI) + " Некоторые поля не заполнены!";
@@ -47,17 +28,17 @@ public class ConstantMessage {
     public static final String VALID_DRIVER_SURNAME_EMPTY = EmojiParser.parseToUnicode(WARNING_EMOJI)
             + " Фамилия не может быть пустой!";
     public static final String VALID_DRIVER_SURNAME_OVER = EmojiParser.parseToUnicode(WARNING_EMOJI)
-            + " Фамилия должна содержать не более 255 символов!";
+            + " Фамилия должна содержать не более 80 символов!";
 
     public static final String TEXT_REGISTER_NAME_DRIVER = EmojiParser.parseToUnicode(GREY_QUESTION) + " Напишите Ваше имя";
     public static final String VALID_DRIVER_NAME_EMPTY = EmojiParser.parseToUnicode(WARNING_EMOJI)
             + " Имя не может быть пустым!";
     public static final String VALID_DRIVER_NAME_OVER = EmojiParser.parseToUnicode(WARNING_EMOJI)
-            + " Имя должно содержать не более 255 символов!";
+            + " Имя должно содержать не более 80 символов!";
 
     public static final String TEXT_REGISTER_PATRONYMIC_DRIVER = EmojiParser.parseToUnicode(GREY_QUESTION) + " Напишите Ваше отчество (при наличие)";
     public static final String VALID_DRIVER_PATRONYMIC_OVER = EmojiParser.parseToUnicode(WARNING_EMOJI)
-            + " Отчество должно содержать не более 255 символов!";
+            + " Отчество должно содержать не более 80 символов!";
 
     public static final String TEXT_REGISTER_PHONE_DRIVER = EmojiParser.parseToUnicode(GREY_QUESTION) + " Напишите Ваш номер телефона без символов +7 и 8";
     public static final String VALID_DRIVER_PHONE_EMPTY = EmojiParser.parseToUnicode(WARNING_EMOJI)

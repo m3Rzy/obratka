@@ -26,8 +26,22 @@ public class DriverServiceImpl implements DriverService {
 
     @Override
     public Driver add(Driver driver) {
-        log.info("The driver has been successfully added to the database! {}", driver);
-//        todo: сделать валидацию данных
+        log.info("The driver has been successfully added to the database! {}", driver.toTerminal());
+        if (driver.getTgId().isEmpty()) {
+            throw new RuntimeException("Идентификатор не может быть пустым!");
+        }
+        if (driver.getFio().isEmpty()) {
+            throw new RuntimeException("ФИО не может быть пустым!");
+        }
+        if (driver.getFio().length() > 255) {
+            throw new RuntimeException("ФИО не может превышать 255 символов!");
+        }
+        if (driver.getTelephone().isEmpty()) {
+            throw new RuntimeException("Номер телефона не может быть пустым!");
+        }
+        if (driver.getTelephone().length() != 11) {
+            throw new RuntimeException("Номер телефона должен содержать только 11 символов!");
+        }
         return driverRepository.save(driver);
     }
 
@@ -44,7 +58,7 @@ public class DriverServiceImpl implements DriverService {
             ownDriver.setTelephone(driver.getTelephone());
         }
 //        todo: сделать валидацию данных
-        log.info("The driver has been successfully patched to the database! {}", driver);
+        log.info("The driver has been successfully patched to the database! {}", driver.toTerminal());
         return driverRepository.saveAndFlush(ownDriver);
     }
 
