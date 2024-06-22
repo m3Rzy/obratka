@@ -16,4 +16,5 @@ public class Emoji {
     public static final String WRITING_HAND_EMOJI = ":writing_hand:";
     public static final String WARNING_EMOJI = ":warning:";
     public static final String BULB_EMOJI = ":bulb:";
+    public static final String GREY_QUESTION = ":grey_question:";
 }

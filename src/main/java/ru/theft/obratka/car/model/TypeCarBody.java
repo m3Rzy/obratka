@@ -1,4 +1,4 @@
-package ru.theft.obratka.driver.model;
+package ru.theft.obratka.car.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

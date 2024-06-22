@@ -26,7 +26,7 @@ public class DriverServiceImpl implements DriverService {
 
     @Override
     public Driver add(Driver driver) {
-        log.info("The driver has been successfully added to the database!");
+        log.info("The driver has been successfully added to the database! {}", driver);
 //        todo: сделать валидацию данных
         return driverRepository.save(driver);
     }
@@ -43,20 +43,8 @@ public class DriverServiceImpl implements DriverService {
         if (driver.getTelephone() != null) {
             ownDriver.setTelephone(driver.getTelephone());
         }
-
-        if (driver.getTypeCarBody() != null) {
-            ownDriver.setTypeCarBody(driver.getTypeCarBody());
-        }
-
-        if (driver.getDimensions() != null) {
-            ownDriver.setDimensions(driver.getDimensions());
-        }
-
-        if (driver.getLoadOpacity() > 0 && driver.getLoadOpacity() < 20000) {
-            ownDriver.setLoadOpacity(driver.getLoadOpacity());
-        }
 //        todo: сделать валидацию данных
-        log.info("The driver has been successfully patched to the database!");
+        log.info("The driver has been successfully patched to the database! {}", driver);
         return driverRepository.saveAndFlush(ownDriver);
     }
 

@@ -42,4 +42,26 @@ public class ConstantMessage {
                 
                 Если Вы передумали добавлять маршрут, достаточно выбрать /obstop, либо выбрать любую кнопку ниже.""";
     public static final String SHARE_ARRIVAL = EmojiParser.parseToUnicode(WHITE_CHECK_MARK_EMOJI) + " Маршрут отправлен логисту.";
+
+    public static final String TEXT_REGISTER_SURNAME_DRIVER = EmojiParser.parseToUnicode(GREY_QUESTION) + " Напишите Вашу фамилию";
+    public static final String VALID_DRIVER_SURNAME_EMPTY = EmojiParser.parseToUnicode(WARNING_EMOJI)
+            + " Фамилия не может быть пустой!";
+    public static final String VALID_DRIVER_SURNAME_OVER = EmojiParser.parseToUnicode(WARNING_EMOJI)
+            + " Фамилия должна содержать не более 255 символов!";
+
+    public static final String TEXT_REGISTER_NAME_DRIVER = EmojiParser.parseToUnicode(GREY_QUESTION) + " Напишите Ваше имя";
+    public static final String VALID_DRIVER_NAME_EMPTY = EmojiParser.parseToUnicode(WARNING_EMOJI)
+            + " Имя не может быть пустым!";
+    public static final String VALID_DRIVER_NAME_OVER = EmojiParser.parseToUnicode(WARNING_EMOJI)
+            + " Имя должно содержать не более 255 символов!";
+
+    public static final String TEXT_REGISTER_PATRONYMIC_DRIVER = EmojiParser.parseToUnicode(GREY_QUESTION) + " Напишите Ваше отчество (при наличие)";
+    public static final String VALID_DRIVER_PATRONYMIC_OVER = EmojiParser.parseToUnicode(WARNING_EMOJI)
+            + " Отчество должно содержать не более 255 символов!";
+
+    public static final String TEXT_REGISTER_PHONE_DRIVER = EmojiParser.parseToUnicode(GREY_QUESTION) + " Напишите Ваш номер телефона без символов +7 и 8";
+    public static final String VALID_DRIVER_PHONE_EMPTY = EmojiParser.parseToUnicode(WARNING_EMOJI)
+            + " Номер телефона не может быть пустым!";
+    public static final String VALID_DRIVER_PHONE_OVER = EmojiParser.parseToUnicode(WARNING_EMOJI)
+            + " Номер телефона должен содержать только 10 символов!";
 }

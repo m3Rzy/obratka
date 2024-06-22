@@ -12,7 +12,6 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.theft.obratka.destination.model.Destination;
 import ru.theft.obratka.destination.service.DestinationService;
 import ru.theft.obratka.driver.model.Driver;
-import ru.theft.obratka.driver.model.TypeCarBody;
 import ru.theft.obratka.driver.service.DriverService;
 import ru.theft.obratka.util.constant.Emoji;
 import ru.theft.obratka.util.constant.UserState;
@@ -38,6 +37,8 @@ public class DriverServiceHandler {
 
     private final List<String> telegramIds = new ArrayList<>();
     private final MenuService menuService = new MenuService();
+
+    private final List<String> driverFields = new ArrayList<>();
 
     public void handleUpdate(Update update, TelegramBotCore bot) throws TelegramApiException {
         if (update.hasMessage() && update.getMessage().hasText()) {
@@ -67,7 +68,12 @@ public class DriverServiceHandler {
 
         switch (update.getMessage().getText()) {
             case "/start" -> {
+                userState.setRegisterSurnameState(false);
+                userState.setRegisterNameState(false);
+                userState.setRegisterPatronymicState(false);
+                userState.setRegisterPhoneState(false);
                 userState.setRegisterProcessState(false);
+                driverFields.clear();
                 bot.execute(menuService.createFirstMenu(update.getMessage().getChatId(),
                         update.getMessage().getFrom().getFirstName()));
             }
@@ -119,28 +125,78 @@ public class DriverServiceHandler {
                     update.getMessage().getFrom().getUserName(), 0, userState));
         } else if (userState.isRegisterProcessState()) {
             try {
-                Driver driver = createDriverFromString(update.getMessage().getText(),
-                        update.getMessage().getFrom().getId(), update.getMessage().getChatId(), bot);
-                if (areAllFieldsFilled(driver)) {
-                    driver.setCreatedAt(LocalDateTime.now());
-                    driverService.add(driver);
+                String text = update.getMessage().getText();
+                if (userState.isRegisterSurnameState()) {
+                    if (text.isEmpty()) {
+                        throw new RuntimeException(VALID_DRIVER_SURNAME_EMPTY);
+                    }
+                    if (text.length() > 255) {
+                        throw new RuntimeException(VALID_DRIVER_SURNAME_OVER);
+                    }
+                    driverFields.add(update.getMessage().getText());
+                    userState.setRegisterSurnameState(false);
+                    userState.setRegisterNameState(true);
+                    bot.execute(createSendMessage(userId, TEXT_REGISTER_NAME_DRIVER));
+                    return;
+
+                }
+
+                if (userState.isRegisterNameState()) {
+                    if (text.isEmpty()) {
+                        throw new RuntimeException(VALID_DRIVER_NAME_EMPTY);
+                    }
+                    if (text.length() > 255) {
+                        throw new RuntimeException(VALID_DRIVER_NAME_OVER);
+                    }
+                    driverFields.add(update.getMessage().getText());
+                    userState.setRegisterNameState(false);
+                    userState.setRegisterPatronymicState(true);
+                    bot.execute(createSendMessage(userId, TEXT_REGISTER_PATRONYMIC_DRIVER));
+                    return;
+
+                }
+
+                if (userState.isRegisterPatronymicState()) {
+                    if (text.length() > 255) {
+                        throw new RuntimeException(VALID_DRIVER_PATRONYMIC_OVER);
+                    }
+                    driverFields.add(update.getMessage().getText());
+                    userState.setRegisterPatronymicState(false);
+                    userState.setRegisterPhoneState(true);
+                    bot.execute(createSendMessage(userId, TEXT_REGISTER_PHONE_DRIVER));
+                    return;
+                }
+
+                if (userState.isRegisterPhoneState()) {
+                    if (text.isEmpty()) {
+                        throw new RuntimeException(VALID_DRIVER_PHONE_EMPTY);
+                    }
+                    if (text.length() != 10) {
+                        throw new RuntimeException(VALID_DRIVER_PHONE_OVER);
+                    }
+                    driverFields.add("7" + update.getMessage().getText());
+                    userState.setRegisterPhoneState(false);
+                    userState.setRegisterDriverFinal(true);
+                }
+
+                if (userState.isRegisterDriverFinal()) {
+                    userState.setRegisterDriverFinal(false);
+                    driverService.add(Driver
+                            .builder()
+                            .tgId(userId.toString())
+                            .fio(driverFields.get(0) + " " + driverFields.get(1) + " " + driverFields.get(2))
+                            .telephone(driverFields.get(3))
+                            .createdAt(LocalDateTime.now()).build());
+
                     bot.execute(menuService.createAuthMenu(update.getMessage().getChatId(),
-                            driver.getFio(), 2, userState));
+                            driverFields.get(1), 2, userState));
                 }
-            } catch (ArrayIndexOutOfBoundsException e) {
-                bot.execute(createSendMessage(update.getMessage().getChatId(), FIELDS_IS_EMPTY));
+            } catch (Exception e) {
+                bot.execute(createSendMessage(userId, e.getMessage()));
             }
+
         } else if (userState.isPatchProcessState()) {
-            try {
-                Driver driver = createDriverFromString(update.getMessage().getText(),
-                        update.getMessage().getFrom().getId(), update.getMessage().getChatId(), bot);
-                if (areAllFieldsFilled(driver)) {
-                    driverService.patch(driver, update.getMessage().getFrom().getId().toString());
-                    bot.execute(menuService.createAuthMenu(update.getMessage().getChatId(), driver.getFio(), 3, userState));
-                }
-            } catch (ArrayIndexOutOfBoundsException e) {
-                bot.execute(createSendMessage(update.getMessage().getChatId(), FIELDS_IS_EMPTY));
-            }
+            // todo: сделать редактирование водилы
         } else if (userState.isArrivalProcessState()) {
             try {
                 Destination destination = createDestinationFromString(update.getMessage().getText(),
@@ -169,7 +225,12 @@ public class DriverServiceHandler {
                 } else {
                     userState.setDriverAuthenticated(false);
                     userState.setRegisterProcessState(true);
-                    bot.execute(createSendMessage(chatId, REGISTER_DRIVER));
+
+                    userState.setRegisterSurnameState(true);
+                    userState.setRegisterNameState(false);
+                    userState.setRegisterPatronymicState(false);
+                    userState.setRegisterPhoneState(false);
+                    bot.execute(createSendMessage(chatId, TEXT_REGISTER_SURNAME_DRIVER));
                 }
                 break;
             case "edit":
@@ -206,90 +267,6 @@ public class DriverServiceHandler {
         message.setChatId(chatId);
         message.setReplyMarkup(keyboard);
         bot.execute(message);
-    }
-
-    private Driver createDriverFromString(String input, long tgId,
-                                          long chatId, TelegramBotCore bot) throws TelegramApiException {
-        String[] lines = input.split("\\n");
-        Driver driver = new Driver();
-        driver.setTgId(String.valueOf(tgId));
-
-        if (lines[0].trim().isEmpty()) {
-            bot.execute(createSendMessage(chatId,
-                    EmojiParser.parseToUnicode(WARNING_EMOJI)
-                            + " Необходимо указать ФИО!\n\n" +
-                            EmojiParser.parseToUnicode(BULB_EMOJI)
-                            + " Пример: _Иванов Иван Иванович_"));
-            throw new RuntimeException("Необходимо указать ФИО!");
-        } else if (lines[0].trim().length() > 255) {
-            bot.execute(createSendMessage(chatId,
-                    EmojiParser.parseToUnicode(WARNING_EMOJI)
-                            + " ФИО не должно превышать более 255 символов!\n\n"
-                            + EmojiParser.parseToUnicode(BULB_EMOJI)
-                            + " Пример: _Иванов Иван Иванович_"));
-            throw new RuntimeException("ФИО не должно превышать более 255 символов!");
-        } else if (lines[0].trim().length() < 4) {
-            bot.execute(createSendMessage(chatId,
-                    EmojiParser.parseToUnicode(WARNING_EMOJI)
-                            + " ФИО должно содержать более 4 символов!\n\n"
-                            + EmojiParser.parseToUnicode(BULB_EMOJI)
-                            + " Пример: _Иванов Иван Иванович_"));
-            throw new RuntimeException("ФИО должно содержать более 4 символов!");
-        }
-        driver.setFio(lines[0].trim());
-
-        if (lines[1].trim().length() != 11) {
-            bot.execute(createSendMessage(chatId,
-                    EmojiParser.parseToUnicode(WARNING_EMOJI)
-                            + " Номер телефона должен содержать только 11 символов!\n\n"
-                            + EmojiParser.parseToUnicode(BULB_EMOJI)
-                            + " _Пример: 79998887766_"));
-            throw new RuntimeException(" Номер телефона должен содержать только 11 символов!");
-        }
-        driver.setTelephone(lines[1].trim());
-
-        if (lines[2].trim().isEmpty()) {
-            bot.execute(createSendMessage(chatId,
-                    EmojiParser.parseToUnicode(WARNING_EMOJI)
-                            + " Необходимо указать тип авто!\n\n"
-                            + EmojiParser.parseToUnicode(BULB_EMOJI)
-                            + " _Пример: тент_"));
-            throw new RuntimeException("Необходимо указать тип авто!");
-        }
-        switch (lines[2].trim().toLowerCase()) {
-            case "фургон" -> driver.setTypeCarBody(TypeCarBody.VAN);
-            case "тент" -> driver.setTypeCarBody(TypeCarBody.TENT);
-            case "изотерма" -> driver.setTypeCarBody(TypeCarBody.ISOTHERMAL);
-            case "открытый" -> driver.setTypeCarBody(TypeCarBody.OPEN);
-            default -> {
-                bot.execute(createSendMessage(chatId, EmojiParser.parseToUnicode(WARNING_EMOJI)
-                        + " Такого типа кузова не существует!\n\n"
-                        + EmojiParser.parseToUnicode(BULB_EMOJI)
-                        + " _Впишите из возможных: тент, фургон, изотерма, открытый._"));
-                throw new IllegalArgumentException("Такого типа кузова не существует!");
-            }
-        }
-
-        driver.setDimensions(lines[3].trim());
-        if (lines[4].trim().isEmpty()) {
-            bot.execute(createSendMessage(chatId,
-                    EmojiParser.parseToUnicode(WARNING_EMOJI)
-                            + " Необходимо указать грузоподъемность (кг) авто!\n\n"
-                            + EmojiParser.parseToUnicode(BULB_EMOJI)
-                            + " Пример: _1500_"));
-            throw new RuntimeException("Необходимо указать грузоподъемность (кг) авто!");
-        }
-        if (Long.parseLong(lines[4].trim()) < 500 || Long.parseLong(lines[4].trim()) > 20000) {
-            bot.execute(createSendMessage(chatId,
-                    EmojiParser.parseToUnicode(WARNING_EMOJI)
-                            + " Авто должно иметь грузоподъемность не менее 500 кг. и не более 20 000 кг.\n\n"
-                            + EmojiParser.parseToUnicode(BULB_EMOJI)
-                            + " Пример: _1500_"));
-            throw new RuntimeException("Авто должно иметь грузоподъемность не менее 500 кг. и не более 20 000 кг.");
-        }
-        driver.setLoadOpacity(Integer.parseInt(lines[4].trim()));
-        log.info("Driver has been created from string.");
-        return driver;
     }
 
     private Destination createDestinationFromString(String input, long chatId,
