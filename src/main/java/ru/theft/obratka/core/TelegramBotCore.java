@@ -13,12 +13,12 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 public class TelegramBotCore extends TelegramLongPollingBot {
 
     private final BotConfig botConfig;
-    private final DriverServiceHandler driverServiceHandler;
+    private final BotServiceHandler botServiceHandler;
 
     @Override
     public void onUpdateReceived(Update update) {
         try {
-            driverServiceHandler.handleUpdate(update, this);
+            botServiceHandler.handleUpdate(update, this);
         } catch (TelegramApiException e) {
             throw new RuntimeException(e);
         }
