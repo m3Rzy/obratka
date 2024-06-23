@@ -24,4 +24,15 @@ public class UserState {
     private boolean editDriverFinal = false;
 
     private boolean registerNewCarState = false;
+    private boolean registerCarStampState = false;
+    private boolean registerCarNumberState = false;
+    private boolean registerCarTypeState = false;
+    private boolean registerCarLengthState = false;
+    private boolean registerCarWeightState = false;
+    private boolean registerCarHeightState = false;
+    private boolean registerCarVolumeState = false;
+    private boolean registerCarTypeOfLoadingState = false;
+    private boolean registerCarLoadOpacityState = false;
+    private boolean registerCarFinal = false;
+
 }

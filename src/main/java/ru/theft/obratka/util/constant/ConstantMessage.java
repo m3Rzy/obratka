@@ -45,4 +45,20 @@ public class ConstantMessage {
             + " Номер телефона не может быть пустым!";
     public static final String VALID_DRIVER_PHONE_OVER = EmojiParser.parseToUnicode(WARNING_EMOJI)
             + " Номер телефона должен содержать только 10 символов!";
+
+    public static final String TEXT_REGISTER_STAMP_CAR = EmojiParser.parseToUnicode(GREY_QUESTION) + " Укажите марку автомобиля";
+    public static final String VALID_REGISTER_STAMP_CAR = EmojiParser.parseToUnicode(WARNING_EMOJI)
+            + " Марка авто не может быть пустой!";
+
+    public static final String TEXT_REGISTER_NUMBER_CAR = EmojiParser.parseToUnicode(GREY_QUESTION) + " Укажите номер авто";
+    public static final String VALID_REGISTER_NUMBER_CAR = EmojiParser.parseToUnicode(WARNING_EMOJI)
+            + " Номер авто не может быть пустым!";
+
+    public static final String TEXT_REGISTER_TYPE_CAR = EmojiParser.parseToUnicode(GREY_QUESTION) + " Выберете тип авто ниже";
+    public static final String TEXT_REGISTER_LENGTH_CAR = EmojiParser.parseToUnicode(GREY_QUESTION) + " Укажите длину кузова в метрах";
+    public static final String TEXT_REGISTER_WEIGHT_CAR = EmojiParser.parseToUnicode(GREY_QUESTION) + " Укажите ширину кузова в метрах";
+    public static final String TEXT_REGISTER_HEIGHT_CAR = EmojiParser.parseToUnicode(GREY_QUESTION) + " Укажите высоту кузова в метрах";
+    public static final String TEXT_REGISTER_VOLUME_CAR = EmojiParser.parseToUnicode(GREY_QUESTION) + " Укажите объём в (м³.)";
+    public static final String TEXT_REGISTER_LOADING_CAR = EmojiParser.parseToUnicode(GREY_QUESTION) + " Выберете тип загрузки из возможных";
+    public static final String TEXT_REGISTER_LOAD_OPACITY_CAR = EmojiParser.parseToUnicode(GREY_QUESTION) + " Укажите грузоподъемность в (кг.)";
 }

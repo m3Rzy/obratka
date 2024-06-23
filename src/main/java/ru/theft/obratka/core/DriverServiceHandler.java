@@ -9,6 +9,10 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import ru.theft.obratka.car.model.Car;
+import ru.theft.obratka.car.model.TypeCarBody;
+import ru.theft.obratka.car.model.TypeOfLoadingCar;
+import ru.theft.obratka.car.service.CarService;
 import ru.theft.obratka.destination.model.Destination;
 import ru.theft.obratka.destination.service.DestinationService;
 import ru.theft.obratka.driver.model.Driver;
@@ -33,12 +37,14 @@ public class DriverServiceHandler {
     private final ConcurrentMap<Long, UserState> userStates = new ConcurrentHashMap<>();
 
     private final DriverService driverService;
+    private final CarService carService;
     private final DestinationService destinationService;
 
     private final List<String> telegramIds = new ArrayList<>();
     private final MenuService menuService = new MenuService();
 
     private final List<String> driverFields = new ArrayList<>();
+    private final List<String> carFields = new ArrayList<>();
 
     public void handleUpdate(Update update, TelegramBotCore bot) throws TelegramApiException {
         if (update.hasMessage() && update.getMessage().hasText()) {
@@ -120,6 +126,8 @@ public class DriverServiceHandler {
                 log.info(update.getMessage().getFrom().getUserName() + " clicked added new car.");
                 if (driverService.getByTgId(update.getMessage().getFrom().getId().toString()).isPresent()) {
                     userState.setRegisterNewCarState(true);
+                    userState.setRegisterCarStampState(true);
+                    bot.execute(createSendMessage(userId, TEXT_REGISTER_STAMP_CAR));
                 } else {
                     bot.execute(createSendMessage(update.getMessage().getChatId(),
                             EmojiParser.parseToUnicode(Emoji.WARNING_EMOJI)
@@ -134,7 +142,7 @@ public class DriverServiceHandler {
         Long userId = update.getMessage().getFrom().getId();
         UserState userState = userStates.get(userId);
 
-        if (userState.isDriverAuthenticated() && !userState.isPatchProcessState() && !userState.isArrivalProcessState()) {
+        if (userState.isDriverAuthenticated() && !userState.isPatchProcessState() && !userState.isArrivalProcessState() && !userState.isRegisterNewCarState()) {
             bot.execute(menuService.createAuthMenu(update.getMessage().getChatId(),
                     update.getMessage().getFrom().getUserName(), 0, userState));
         } else if (userState.isRegisterProcessState()) {
@@ -295,6 +303,120 @@ public class DriverServiceHandler {
             }
         } else if (userState.isRegisterNewCarState()) {
 //            todo: зарегать новое авто
+            String text = update.getMessage().getText();
+            try {
+                if (userState.isRegisterCarStampState()) {
+                    if (text.isEmpty()) {
+                        throw new RuntimeException(VALID_REGISTER_STAMP_CAR);
+                    }
+                    carFields.add(text);
+                    userState.setRegisterCarStampState(false);
+                    userState.setRegisterCarNumberState(true);
+                    System.out.println(text);
+                    bot.execute(createSendMessage(userId, TEXT_REGISTER_NUMBER_CAR));
+                    return;
+                }
+                if (userState.isRegisterCarNumberState()) {
+                    if (text.isEmpty()) {
+                        throw new RuntimeException(VALID_REGISTER_NUMBER_CAR);
+                    }
+                    carFields.add(text);
+                    userState.setRegisterCarNumberState(false);
+                    userState.setRegisterCarTypeState(true);
+
+                    InlineKeyboardMarkup keyboard;
+                    var vanButton = menuService.createInlineKeyboardButton("Фургон", "van-car");
+                    var tentButton = menuService.createInlineKeyboardButton("Тент", "tent-car");
+                    var isothermalButton = menuService.createInlineKeyboardButton("Изотермический", "isothermal-car");
+                    var openButton = menuService.createInlineKeyboardButton("Открытый", "open-car");
+
+                    keyboard = InlineKeyboardMarkup.builder().keyboardRow(
+                                    List.of(vanButton, tentButton, isothermalButton, openButton))
+                            .build();
+                    SendMessage message = new SendMessage();
+                    message.enableHtml(true);
+                    message.enableMarkdownV2(true);
+                    message.enableMarkdown(true);
+                    message.setText(TEXT_REGISTER_TYPE_CAR);
+                    message.setChatId(userId);
+                    message.setReplyMarkup(keyboard);
+                    bot.execute(message);
+
+                    return;
+                }
+                if (userState.isRegisterCarTypeState()) {
+
+                    userState.setRegisterCarTypeState(false);
+                    userState.setRegisterCarLengthState(true);
+                    return;
+                }
+                if (userState.isRegisterCarLengthState()) {
+                    carFields.add(text);
+                    userState.setRegisterCarLengthState(false);
+                    userState.setRegisterCarWeightState(true);
+                    bot.execute(createSendMessage(userId, TEXT_REGISTER_WEIGHT_CAR));
+                    return;
+                }
+                if (userState.isRegisterCarWeightState()) {
+                    carFields.add(text);
+                    userState.setRegisterCarWeightState(false);
+                    userState.setRegisterCarHeightState(true);
+                    bot.execute(createSendMessage(userId, TEXT_REGISTER_HEIGHT_CAR));
+                    return;
+                }
+                if (userState.isRegisterCarHeightState()) {
+                    carFields.add(text);
+                    userState.setRegisterCarHeightState(false);
+                    userState.setRegisterCarVolumeState(true);
+                    bot.execute(createSendMessage(userId, TEXT_REGISTER_VOLUME_CAR));
+                    return;
+                }
+                if (userState.isRegisterCarVolumeState()) {
+                    carFields.add(text);
+                    userState.setRegisterCarVolumeState(false);
+                    userState.setRegisterCarTypeOfLoadingState(true);
+                    bot.execute(createSendMessage(userId, TEXT_REGISTER_LOADING_CAR));
+                    return;
+                }
+                if (userState.isRegisterCarTypeOfLoadingState()) {
+                    carFields.add(text);
+                    userState.setRegisterCarTypeOfLoadingState(false);
+                    userState.setRegisterCarLoadOpacityState(true);
+                    bot.execute(createSendMessage(userId, TEXT_REGISTER_LOAD_OPACITY_CAR));
+                    return;
+                }
+                if (userState.isRegisterCarLoadOpacityState()) {
+                    carFields.add(text);
+                    userState.setRegisterCarLoadOpacityState(false);
+                    userState.setRegisterCarFinal(true);
+                    bot.execute(createSendMessage(userId, "Успех!"));
+                }
+
+                if (userState.isRegisterCarFinal()) {
+                    userState.setRegisterCarFinal(false);
+                    Driver driver = driverService.getByTgId(userId.toString()).get();
+                    carService.add(Car
+                            .builder()
+                                    .carStamp(carFields.get(0))
+                                    .carNumber(carFields.get(1))
+                                    .typeCarBody(TypeCarBody.valueOf(carFields.get(2)))
+                                    .carLength(carFields.get(3))
+                                    .carWeight(carFields.get(4))
+                                    .carHeight(carFields.get(5))
+                                    .carVolume(carFields.get(6))
+                                    .typeOfLoadingCars(List.of(TypeOfLoadingCar.valueOf(carFields.get(7))))
+                                    .carLoadOpacity(carFields.get(8))
+                                    .driver(driver)
+                                    .createdAt(LocalDateTime.now())
+                            .build());
+
+                    bot.execute(menuService.createAuthMenu(update.getMessage().getChatId(), "Успешно зарегали авто!",
+                            2, userState));
+                    carFields.clear();
+                }
+            } catch (Exception e) {
+                bot.execute(createSendMessage(userId, e.getMessage()));
+            }
         }
         else {
             bot.execute(createSendMessage(update.getMessage().getChatId(), "Сначала пройдите регистрацию! /start"));
@@ -326,6 +448,22 @@ public class DriverServiceHandler {
                 userState.setPatchProcessState(true);
                 userState.setEditSurnameState(true);
                 bot.execute(createSendMessage(chatId, TEXT_REGISTER_SURNAME_DRIVER));
+                break;
+            case "van-car":
+                carFields.add("VAN");
+                bot.execute(createSendMessage(chatId, TEXT_REGISTER_LENGTH_CAR));
+                break;
+            case "tent-car":
+                carFields.add("TENT");
+                bot.execute(createSendMessage(chatId, TEXT_REGISTER_LENGTH_CAR));
+                break;
+            case "isothermal-car":
+                carFields.add("ISOTHERMAL");
+                bot.execute(createSendMessage(chatId, TEXT_REGISTER_LENGTH_CAR));
+                break;
+            case "open-car":
+                carFields.add("OPEN");
+                bot.execute(createSendMessage(chatId, TEXT_REGISTER_LENGTH_CAR));
                 break;
             default:
                 break;
