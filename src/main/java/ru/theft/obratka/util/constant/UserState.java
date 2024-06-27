@@ -13,4 +13,9 @@ public class UserState {
     private boolean isUserNameRegistrationState = false;
     private boolean isUserPatronymicRegistrationState = false;
     private boolean isUserTelephoneNumberRegistrationState = false;
+
+    private boolean isUserSurnamePatchState = false;
+    private boolean isUserNamePatchState = false;
+    private boolean isUserPatronymicPatchState = false;
+    private boolean isUserTelephoneNumberPatchState = false;
 }

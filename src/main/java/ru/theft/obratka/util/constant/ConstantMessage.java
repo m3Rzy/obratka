@@ -26,6 +26,8 @@ public class ConstantMessage {
 
     public static final String SUCCESSFUL_REGISTER = "Вы были успешно добавлены в базу.";
 
+    public static final String UNKNOWN_MESSAGE =
+            EmojiParser.parseToUnicode(STOP_SIGN_EMOJI) + " Неизвестная команда! Выберете кнопки ниже.";
 
     public static String helloMessage(String userName) {
         return "Добро пожаловать, " + userName + " " + EmojiParser.parseToUnicode(Emoji.WAVE_EMOJI) + "\n\n"

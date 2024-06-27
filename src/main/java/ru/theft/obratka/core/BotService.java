@@ -85,6 +85,7 @@ public class BotService {
         keyboard.add(keyboardFirstRow);
         keyboard.add(keyboardSecondRow);
         keyboard.add(keyboardThirdRow);
+
         replyKeyboardMarkup.setKeyboard(keyboard);
         message.enableHtml(true);
         message.enableMarkdownV2(true);
@@ -142,6 +143,12 @@ public class BotService {
             if (text.length() != 10) {
                 throw new RuntimeException("Номер телефона должен содержать только 10 символов!");
             }
+            if (driverService.getAll()
+                    .stream()
+                    .anyMatch(f -> f.getTelephone().equals("7" + text))) {
+                throw new RuntimeException("Пользователь с таким номером телефона уже зарегестрирован! Укажите другой номер.");
+            }
+
             driverFields.add("7" + text);
             state.setUserTelephoneNumberRegistrationState(false);
             driverService.add(
@@ -153,9 +160,21 @@ public class BotService {
                             .build()
             );
             state.setUserAuthenticated(true);
+            state.setUserRegistrationInProgress(false);
             bot.execute(createReplyKeyboardMarkup(chatId, SUCCESSFUL_REGISTER));
-            driverFields.clear();
+            clearDriverFields();
         }
+    }
+
+    protected SendMessage showProfile(Long tgId, Long chatId) {
+        Driver driver = driverService.getByTgId(tgId.toString())
+                .orElseThrow(() -> new RuntimeException("Такого водителя не существует!"));
+
+        return createInlineKeyboardMarkup(
+                driver.toString(),
+                chatId,
+                List.of(createInlineKeyboardButton("Изменить данные " + EmojiParser
+                        .parseToUnicode(Emoji.WRITING_HAND_EMOJI), "edit")));
     }
 
     protected void clearDriverFields() {
