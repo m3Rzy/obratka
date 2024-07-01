@@ -9,7 +9,6 @@ import org.hibernate.annotations.CreationTimestamp;
 import ru.theft.obratka.driver.model.Driver;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Data
 @Entity
@@ -35,17 +34,14 @@ public class Car {
     @Column(name = "car_length", nullable = false)
     private String carLength;
 
-    @Column(name = "car_weight", nullable = false)
-    private String carWeight;
+    @Column(name = "car_width", nullable = false)
+    private String carWidth;
 
     @Column(name = "car_height", nullable = false)
     private String carHeight;
 
     @Column(name = "car_volume", nullable = false)
     private String carVolume;
-
-    @Column(name = "car_type_of_loading", nullable = false)
-    List<TypeOfLoadingCar> typeOfLoadingCars;
 
     @Column(name = "car_load_opacity", nullable = false)
     private String carLoadOpacity;
@@ -57,4 +53,35 @@ public class Car {
     @CreationTimestamp
     @Column(name = "car_created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    public String toTerminal() {
+
+        String s_stamp = "Марка:";
+        String s_number = "Госномер:";
+        String s_type = "Тип кузова:";
+        String s_length = "Длина кузова:";
+        String s_width = "Ширина кузова:";
+        String s_height = "Высота кузова:";
+        String s_volume = "Объём кузова:";
+        String s_loadOpacity = "Грузоподъемность кузова:";
+        int totalWidth = 40;
+        return String.format("```\n" +
+                        "%s%" + (totalWidth - s_stamp.length()) + "s\n" +
+                        "%s%" + (totalWidth - s_number.length()) + "s\n" +
+                        "%s%" + (totalWidth - s_type.length()) + "s\n" +
+                        "%s%" + (totalWidth - s_length.length()) + "s\n" +
+                        "%s%" + (totalWidth - s_width.length()) + "s\n" +
+                        "%s%" + (totalWidth - s_height.length()) + "s\n" +
+                        "%s%" + (totalWidth - s_volume.length()) + "s\n" +
+                        "%s%" + (totalWidth - s_loadOpacity.length()) + "s\n" +
+                        "```",
+                s_stamp, carStamp,
+                s_number, carNumber,
+                s_type, typeCarBody.getTitle(),
+                s_length, carLength + " м",
+                s_width, carWidth + " м",
+                s_height, carHeight + " м",
+                s_volume, carVolume + " м³",
+                s_loadOpacity, carLoadOpacity + " кг.");
+    }
 }

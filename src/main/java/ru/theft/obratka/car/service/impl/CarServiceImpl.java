@@ -10,6 +10,7 @@ import ru.theft.obratka.driver.model.Driver;
 import ru.theft.obratka.driver.service.DriverService;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -25,6 +26,14 @@ public class CarServiceImpl implements CarService {
     }
 
     @Override
+    public List<Car> getCarsByDriverId(long id) {
+        return carRepository.findAll()
+                .stream()
+                .filter(f -> f.getDriver().getTgId().equals(String.valueOf(id)))
+                .toList();
+    }
+
+    @Override
     public List<Car> getCars() {
         List<Car> cars = carRepository.findAll();
         log.info("Count of cars: {}", cars.size());
@@ -36,6 +45,14 @@ public class CarServiceImpl implements CarService {
 
         return carRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Авто с указанным идентификатором не существует!"));
+    }
+
+    @Override
+    public Optional<Car> getCarByCarNumber(String carNumber) {
+        return carRepository.findAll()
+                .stream()
+                .filter(f -> f.getCarNumber().equals(carNumber))
+                .findFirst();
     }
 
     @Override

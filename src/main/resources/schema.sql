@@ -14,15 +14,14 @@ CREATE TABLE IF NOT EXISTS cars (
     car_number VARCHAR UNIQUE NOT NULL,
     car_type VARCHAR NOT NULL,
     car_length VARCHAR NOT NULL,
-    car_weight VARCHAR NOT NULL,
-    car_height VARCHAR NOT NULL,
+    car_width VARCHAR,
+    car_height VARCHAR,
     car_volume VARCHAR NOT NULL,
-    car_type_of_loading VARCHAR[] NOT NULL,
     car_load_opacity VARCHAR NOT NULL,
     driver_id BIGINT NOT NULL,
     CONSTRAINT fk_cars_to_driver
             FOREIGN KEY(driver_id) REFERENCES drivers(id) ON DELETE CASCADE,
-    driver_created_at TIMESTAMP NOT NULL
+    car_created_at TIMESTAMP NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS destinations (

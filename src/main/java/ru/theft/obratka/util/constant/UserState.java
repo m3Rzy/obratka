@@ -8,6 +8,7 @@ import lombok.Setter;
 public class UserState {
     private boolean isUserAuthenticated = false;
     private boolean isUserRegistrationInProgress = false;
+    private boolean isCarRegistrationInProgress = false;
 
     private boolean isUserSurnameRegistrationState = false;
     private boolean isUserNameRegistrationState = false;
@@ -18,4 +19,12 @@ public class UserState {
     private boolean isUserNamePatchState = false;
     private boolean isUserPatronymicPatchState = false;
     private boolean isUserTelephoneNumberPatchState = false;
+
+    private boolean isCarStampRegistrationState = false;
+    private boolean isCarNumberRegistrationState = false;
+    private boolean isCarTypeBodyRegistrationState = false;
+    private boolean isCarBodyLengthRegistrationState = false;
+    private boolean isCarBodyWidthRegistrationState = false;
+    private boolean isCarBodyHeightRegistrationState = false;
+    private boolean isCarLoadOpacityRegistrationState = false;
 }

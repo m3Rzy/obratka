@@ -32,20 +32,21 @@ public class Driver {
 
     @Override
     public String toString() {
+        return "[" + tgId + ", " +
+                fio + ", " +
+                telephone + ", " +
+                createdAt + ".]";
+    }
+
+    public String toTerminal() {
+
         String s_fio = "ФИО:";
-        String s_telephone = "Номер телефона для связи:";
-        int totalWidth = 50;
+        String s_telephone = "Номер телефона:";
+        int totalWidth = 40;
         return String.format("```\n" +
                         "%s%" + (totalWidth - s_fio.length()) + "s\n" +
                         "%s%" + (totalWidth - s_telephone.length()) + "s\n" +
                         "```",
                 s_fio, fio, s_telephone, "+" + telephone);
-    }
-
-    public String toTerminal() {
-        return "[" + tgId + ", " +
-               fio + ", " +
-               telephone + ", " +
-               createdAt + ".]";
     }
 }
